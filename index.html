@@ -95,7 +95,7 @@ input,textarea{font-family:inherit}
 .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
 .product-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);transition:transform .25s,box-shadow .25s;position:relative}
 .product-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(238,138,51,.18)}
-.product-card-img-wrap{position:relative;overflow:hidden;height:210px}
+.product-card-img-wrap{position:relative;overflow:hidden;aspect-ratio:1;background:#fff}
 .product-card-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
 .product-card:hover .product-card-img{transform:scale(1.06)}
 .discount-badge{position:absolute;top:10px;left:10px;background:var(--primary2);color:#fff;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:10px}
@@ -1176,7 +1176,7 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
 </div>
 
 <script>
-function petThumb(e,bg){bg=bg||'#fdf0e2';return "data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='"+bg+"'/><text x='200' y='208' font-size='150' text-anchor='middle' dominant-baseline='middle'>"+e+"</text></svg>");}
+function petThumb(e,bg){bg=bg||'#fdf0e2';return "data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' fill='"+bg+"'/><text x='200' y='210' font-size='190' text-anchor='middle' dominant-baseline='middle'>"+e+"</text></svg>");}
 /* 🐾 ของใช้สัตว์เลี้ยงเท่านั้น (hold อาหาร/ขนมไว้ก่อนตามที่ Nutt สั่ง) */
 let PRODUCTS = [
   {id:"AT-P01",slug:"rope-ball",name_th:"ลูกบอลเชือก ของเล่นน้องหมา",name_en:"Rope Ball Dog Toy",cat:"ของเล่น",price:59,orig:null,weight:"คละสี",img:petThumb("🧶","#fdeede"),
