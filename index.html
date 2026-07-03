@@ -475,7 +475,7 @@ body.dark .recent-card{background:#241c15}
 .story-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px;margin-top:24px}
 .story-card{background:#fff;border-radius:16px;padding:24px 20px;box-shadow:0 2px 12px var(--shadow)}
 body.dark .story-card{background:#241c15}
-.story-card .sc-ic{font-size:2rem;margin-bottom:10px}
+.story-card .sc-ic{width:56px;height:56px;border-radius:50%;background:#FFF1DC;color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:14px}
 .story-card h3{font-size:1.05rem;color:var(--primary);margin-bottom:8px}
 .story-card p{font-size:.86rem;line-height:1.65;color:var(--muted)}
 
@@ -823,9 +823,9 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
   <div class="section-label" style="text-align:center">✦ เรื่องราวของเรา</div>
   <h2 class="section-title" style="text-align:center" data-i18n="storyTitle">เรื่องราวของอุ้งเท้าช็อป</h2>
   <div class="story-grid">
-    <div class="story-card"><div class="sc-ic">🐾</div><h3 data-i18n="story1t">คัดเหมือนเลือกให้น้องตัวเอง</h3><p data-i18n="story1p">ทุกชิ้นเราเลือกเองด้วยใจ เฉพาะของที่อยากให้น้อง ๆ ของเราได้ใช้ — ปลอดภัย ได้มาตรฐาน สบายใจทุกชิ้น</p></div>
-    <div class="story-card"><div class="sc-ic">💝</div><h3 data-i18n="story2t">น้องคือครอบครัว</h3><p data-i18n="story2p">เราเข้าใจดีว่าน้องหมาน้องแมวคือสมาชิกในบ้าน ทุกอย่างที่คัดมา จึงเลือกด้วยหัวใจคนรักสัตว์เหมือนกันกับคุณ</p></div>
-    <div class="story-card"><div class="sc-ic">📦</div><h3 data-i18n="story3t">ส่งถึงมืออย่างทะนุถนอม</h3><p data-i18n="story3p">แพ็กแน่นหนาอย่างใส่ใจ ส่งตรงถึงบ้านทั่วไทย มีอุ๋งอิ๋งคอยช่วยเลือกของให้น้องทุกขั้นตอน 🐾</p></div>
+    <div class="story-card"><div class="sc-ic"><i class="ti ti-award"></i></div><h3 data-i18n="story1t">คัดเหมือนเลือกให้น้องตัวเอง</h3><p data-i18n="story1p">ทุกชิ้นเราเลือกเองด้วยใจ เฉพาะของที่อยากให้น้อง ๆ ของเราได้ใช้ — ปลอดภัย ได้มาตรฐาน สบายใจทุกชิ้น</p></div>
+    <div class="story-card"><div class="sc-ic"><i class="ti ti-heart-filled"></i></div><h3 data-i18n="story2t">น้องคือครอบครัว</h3><p data-i18n="story2p">เราเข้าใจดีว่าน้องหมาน้องแมวคือสมาชิกในบ้าน ทุกอย่างที่คัดมา จึงเลือกด้วยหัวใจคนรักสัตว์เหมือนกันกับคุณ</p></div>
+    <div class="story-card"><div class="sc-ic"><i class="ti ti-truck-delivery"></i></div><h3 data-i18n="story3t">ส่งถึงมืออย่างทะนุถนอม</h3><p data-i18n="story3p">แพ็กแน่นหนาอย่างใส่ใจ ส่งตรงถึงบ้านทั่วไทย มีอุ๋งอิ๋งคอยช่วยเลือกของให้น้องทุกขั้นตอน 🐾</p></div>
   </div>
 </section>
 
