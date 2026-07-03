@@ -1179,46 +1179,46 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
 function petThumb(e,bg){bg=bg||'#fdf0e2';return "data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' fill='"+bg+"'/><text x='200' y='210' font-size='190' text-anchor='middle' dominant-baseline='middle'>"+e+"</text></svg>");}
 /* 🐾 ของใช้สัตว์เลี้ยงเท่านั้น (hold อาหาร/ขนมไว้ก่อนตามที่ Nutt สั่ง) */
 let PRODUCTS = [
-  {id:"AT-P01",slug:"rope-ball",name_th:"ลูกบอลเชือก ของเล่นน้องหมา",name_en:"Rope Ball Dog Toy",cat:"ของเล่น",price:59,orig:null,weight:"คละสี",img:petThumb("🧶","#fdeede"),
+  {id:"AT-P01",slug:"rope-ball",name_th:"ลูกบอลเชือก ของเล่นน้องหมา",name_en:"Rope Ball Dog Toy",cat:"ของเล่น",price:59,orig:null,weight:"คละสี",
    desc:"ลูกบอลถักเชือกฝ้ายธรรมชาติ ทนการกัด ช่วยขัดฟันลดคราบหินปูน ให้น้องหมาคาบเล่น-ฝึกคาบ คลายเครียด ปลอดสารพิษ",
    hl:["เชือกฝ้ายแท้","ช่วยขัดฟัน","ทนการกัด"]},
-  {id:"AT-P02",slug:"catnip-toy",name_th:"ของเล่นแมว ตุ๊กตาคาทนิป",name_en:"Catnip Toy",cat:"ของเล่น",price:159,orig:null,weight:"คละลาย",img:petThumb("🧸","#fff4e6"),
+  {id:"AT-P02",slug:"catnip-toy",name_th:"ของเล่นแมว ตุ๊กตาคาทนิป",name_en:"Catnip Toy",cat:"ของเล่น",price:159,orig:null,weight:"คละลาย",
    desc:"ตุ๊กตาของเล่นสอดไส้คาทนิปแท้ กระตุ้นให้น้องแมวสนุก ออกกำลังกาย คลายเครียด ผ้าทนทานกัดเล่นได้นาน",
    hl:["คาทนิปแท้","คลายเครียด","ผ้าทนทาน"]},
-  {id:"AT-P03",slug:"pet-bed-soft",name_th:"ที่นอนนุ่มขนนุ่ม Soft & Cozy",name_en:"Soft & Cozy Pet Bed",cat:"ที่นอน & ผ้าห่ม",price:490,orig:null,weight:"ขนาด M",img:petThumb("🛏️","#fdf3e6"),
+  {id:"AT-P03",slug:"pet-bed-soft",name_th:"ที่นอนนุ่มขนนุ่ม Soft & Cozy",name_en:"Soft & Cozy Pet Bed",cat:"ที่นอน & ผ้าห่ม",price:490,orig:null,weight:"ขนาด M",
    desc:"ที่นอนทรงโซฟา ขอบหนุนนุ่มสบาย ใยสังเคราะห์เกรดดี ถอดซักได้ กันลื่นด้านล่าง อบอุ่นให้น้องหลับสบายทั้งคืน",
    hl:["นุ่มหนา ถอดซักได้","ขอบหนุนหัว","กันลื่น"]},
-  {id:"AT-P04",slug:"water-bottle",name_th:"ขวดน้ำพกพา สำหรับสุนัข-แมว 550ml",name_en:"Portable Water Bottle 550ml",cat:"ชาม & ขวดน้ำ",price:189,orig:null,weight:"550ml",img:petThumb("🍶","#fbeede"),
+  {id:"AT-P04",slug:"water-bottle",name_th:"ขวดน้ำพกพา สำหรับสุนัข-แมว 550ml",name_en:"Portable Water Bottle 550ml",cat:"ชาม & ขวดน้ำ",price:189,orig:null,weight:"550ml",
    desc:"ขวดน้ำพกพากดน้ำออกถาดในตัว พาน้องเที่ยวไม่ขาดน้ำ วาล์วกันหก ทำความสะอาดง่าย ปลอด BPA จุ 550ml",
    hl:["กดดื่มในตัว","กันหก","ปลอด BPA"]},
-  {id:"AT-P05",slug:"stainless-bowl",name_th:"ชามอาหารสแตนเลส 2 หลุม",name_en:"Stainless Double Bowl",cat:"ชาม & ขวดน้ำ",price:249,orig:null,weight:"ขนาด M",img:petThumb("🥣","#fdf3e6"),
+  {id:"AT-P05",slug:"stainless-bowl",name_th:"ชามอาหารสแตนเลส 2 หลุม",name_en:"Stainless Double Bowl",cat:"ชาม & ขวดน้ำ",price:249,orig:null,weight:"ขนาด M",
    desc:"ชามให้อาหาร-น้ำ สแตนเลสคู่ ฐานยางกันลื่น-กันคว่ำ ทำความสะอาดง่าย ไม่เป็นสนิม ถูกสุขอนามัยสำหรับน้อง",
    hl:["สแตนเลสไม่เป็นสนิม","ฐานกันลื่น","ล้างง่าย"]},
-  {id:"AT-P06",slug:"nylon-leash",name_th:"สายจูงไนลอน แบบนุ่ม",name_en:"Soft Nylon Leash",cat:"ปลอกคอ & สายจูง",price:159,orig:null,weight:"ยาว 1.5m",img:petThumb("🦮","#fdf0e2"),
+  {id:"AT-P06",slug:"nylon-leash",name_th:"สายจูงไนลอน แบบนุ่ม",name_en:"Soft Nylon Leash",cat:"ปลอกคอ & สายจูง",price:159,orig:null,weight:"ยาว 1.5m",
    desc:"สายจูงไนลอนถักแน่น มือจับบุนุ่มไม่บาดมือ ตะขอโลหะแข็งแรง สะท้อนแสงเดินกลางคืนปลอดภัย เหมาะหมาเล็ก-กลาง",
    hl:["มือจับบุนุ่ม","ตะขอแข็งแรง","สะท้อนแสง"]},
-  {id:"AT-P07",slug:"pet-collar",name_th:"ปลอกคอปรับขนาด พร้อมป้ายชื่อ",name_en:"Adjustable Pet Collar",cat:"ปลอกคอ & สายจูง",price:199,orig:240,weight:"คละสี",img:petThumb("🔔","#fdeede"),
+  {id:"AT-P07",slug:"pet-collar",name_th:"ปลอกคอปรับขนาด พร้อมป้ายชื่อ",name_en:"Adjustable Pet Collar",cat:"ปลอกคอ & สายจูง",price:199,orig:240,weight:"คละสี",
    desc:"ปลอกคอไนลอนนุ่ม ปรับขนาดได้ มีกระดิ่งและช่องใส่ป้ายชื่อ กันน้ำ ตัวล็อกแข็งแรง เหมาะทั้งหมาและแมว",
    hl:["ปรับขนาดได้","มีป้ายชื่อ","ตัวล็อกแข็งแรง"]},
-  {id:"AT-P08",slug:"pet-shirt",name_th:"เสื้อสัตว์เลี้ยง ลายน่ารัก",name_en:"Cute Pet Shirt",cat:"เสื้อผ้า & แฟชั่น",price:129,orig:159,weight:"S/M/L",img:petThumb("👕","#fbeede"),
+  {id:"AT-P08",slug:"pet-shirt",name_th:"เสื้อสัตว์เลี้ยง ลายน่ารัก",name_en:"Cute Pet Shirt",cat:"เสื้อผ้า & แฟชั่น",price:129,orig:159,weight:"S/M/L",
    desc:"เสื้อผ้าฝ้ายนุ่ม ระบายอากาศดี ใส่สบายไม่อึดอัด ลายน่ารักถ่ายรูปสวย กันขนร่วง-กันหนาวเบา ๆ มีหลายไซซ์",
    hl:["ผ้าฝ้ายนุ่ม","ใส่สบาย","ถ่ายรูปสวย"]},
-  {id:"AT-P09",slug:"pet-carrier",name_th:"กระเป๋าใส่สัตว์เลี้ยง พับเก็บได้",name_en:"Foldable Pet Carrier",cat:"กระเป๋า & เดินทาง",price:590,orig:null,weight:"ขนาด M",img:petThumb("🎒","#fff4e6"),
+  {id:"AT-P09",slug:"pet-carrier",name_th:"กระเป๋าใส่สัตว์เลี้ยง พับเก็บได้",name_en:"Foldable Pet Carrier",cat:"กระเป๋า & เดินทาง",price:590,orig:null,weight:"ขนาด M",
    desc:"กระเป๋าพาน้องเที่ยว-หาหมอ ระบายอากาศดี มีช่องตาข่าย พับเก็บประหยัดที่ สายสะพายนุ่ม รับน้ำหนักได้ถึง 7kg",
    hl:["พับเก็บได้","ระบายอากาศดี","รับน้ำหนัก 7kg"]},
-  {id:"AT-P10",slug:"cat-litter-tofu",name_th:"ทรายแมวเต้าหู้ ออร์แกนิก",name_en:"Tofu Cat Litter",cat:"อุปกรณ์ทำความสะอาด",price:289,orig:320,weight:"6L",img:petThumb("🚽","#fdf3e6"),
+  {id:"AT-P10",slug:"cat-litter-tofu",name_th:"ทรายแมวเต้าหู้ ออร์แกนิก",name_en:"Tofu Cat Litter",cat:"อุปกรณ์ทำความสะอาด",price:289,orig:320,weight:"6L",
    desc:"ทรายแมวจากกากเต้าหู้ธรรมชาติ จับตัวเป็นก้อนไว ดับกลิ่นเยี่ยม ฝุ่นน้อย ทิ้งชักโครกได้ ปลอดภัยแม้น้องเผลอเลีย",
    hl:["จับก้อนไว ดับกลิ่น","ฝุ่นน้อย","ทิ้งชักโครกได้"]},
-  {id:"AT-P11",slug:"grooming-brush",name_th:"แปรงสางขน + ชุดดูแลขน",name_en:"Pet Grooming Brush Set",cat:"อุปกรณ์ดูแลขน",price:175,orig:null,weight:"เซ็ต 3 ชิ้น",img:petThumb("🧴","#fdeede"),
+  {id:"AT-P11",slug:"grooming-brush",name_th:"แปรงสางขน + ชุดดูแลขน",name_en:"Pet Grooming Brush Set",cat:"อุปกรณ์ดูแลขน",price:175,orig:null,weight:"เซ็ต 3 ชิ้น",
    desc:"แปรงสางขนเก็บขนร่วง ปุ่มยางนวดผ่อนคลาย พร้อมหวีซี่ถี่และกรรไกรเล็มขน ดูแลน้องให้ขนสวยไม่พันกัน",
    hl:["เก็บขนร่วง","นวดผ่อนคลาย","เซ็ตครบ"]},
-  {id:"AT-P12",slug:"cat-house-nordic",name_th:"บ้านแมวไม้สน สไตล์นอร์ดิก",name_en:"Nordic Pine Cat House",cat:"บ้านแมว",price:1290,orig:1490,weight:"ไม้สนแท้",img:petThumb("🏠","#fdf0e2"),
+  {id:"AT-P12",slug:"cat-house-nordic",name_th:"บ้านแมวไม้สน สไตล์นอร์ดิก",name_en:"Nordic Pine Cat House",cat:"บ้านแมว",price:1290,orig:1490,weight:"ไม้สนแท้",
    desc:"บ้านแมวไม้สนแท้ ดีไซน์นอร์ดิกมินิมอล แข็งแรงทนทาน ระบายอากาศดี ประกอบง่าย เข้ากับบ้านทุกสไตล์ งานคุณภาพร้านทำเอง",
    hl:["ไม้สนแท้","ดีไซน์นอร์ดิก","ร้านผลิตเอง"]},
-  {id:"AT-P13",slug:"cat-house-modern",name_th:"บ้านแมวโมเดิร์น พร้อมเสาลับเล็บ",name_en:"Modern Cat House + Scratch Post",cat:"บ้านแมว",price:2290,orig:null,weight:"ไม้+เชือกป่าน",img:petThumb("🏡","#fbeede"),
+  {id:"AT-P13",slug:"cat-house-modern",name_th:"บ้านแมวโมเดิร์น พร้อมเสาลับเล็บ",name_en:"Modern Cat House + Scratch Post",cat:"บ้านแมว",price:2290,orig:null,weight:"ไม้+เชือกป่าน",
    desc:"บ้านแมวหลายชั้นสไตล์โมเดิร์น มาพร้อมเสาลับเล็บเชือกป่าน ที่นอนนุ่ม ฐานมั่นคงไม่โยก ให้น้องปีนป่าย-หลบมุมได้สนุก",
    hl:["มีเสาลับเล็บ","หลายชั้น","ฐานมั่นคง"]},
-  {id:"AT-P14",slug:"cat-house-dome",name_th:"บ้านแมวทรงโดม สุดอบอุ่น",name_en:"Cozy Dome Cat House",cat:"บ้านแมว",price:890,orig:null,weight:"ผ้าบุนุ่ม",img:petThumb("⛺","#fff4e6"),
+  {id:"AT-P14",slug:"cat-house-dome",name_th:"บ้านแมวทรงโดม สุดอบอุ่น",name_en:"Cozy Dome Cat House",cat:"บ้านแมว",price:890,orig:null,weight:"ผ้าบุนุ่ม",
    desc:"บ้านแมวทรงโดมบุผ้านุ่ม อบอุ่นซ่อนตัวได้ น้องรู้สึกปลอดภัย ถอดเบาะซักได้ น้ำหนักเบาย้ายง่าย เหมาะแมวและหมาเล็ก",
    hl:["อบอุ่นซ่อนตัว","ถอดซักได้","น้ำหนักเบา"]},
 ];
@@ -1431,7 +1431,7 @@ async function syncProductsFromSupabase() {
 syncProductsFromSupabase();
 
 // รูปสินค้า: ใช้ image_url จาก DB ก่อน (สินค้าใหม่อัปขึ้น Storage) · ไม่มีก็ fallback ไฟล์ในเว็บตาม slug
-function imgUrl(p){ return (p && p.img) || ((p && p.slug) ? ('รูปสินค้า_web/' + p.slug + '.jpg') : ''); }
+function imgUrl(p){ return (p && p.img) || ((p && p.slug) ? ('images/' + p.slug + '.jpg') : ''); }
 function openProductModal(slug) {
   const p = PRODUCTS.find(x => x.slug === slug) || PRODUCTS.find(x => x.id === slug);
   if (!p) return;
