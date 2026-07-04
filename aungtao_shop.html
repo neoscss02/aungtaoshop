@@ -629,7 +629,7 @@ body.overlay-open #chat-btn{opacity:0;pointer-events:none;transform:scale(.6)}
 <div id="topbar">
 <!-- TOP UTILITY BAR -->
 <div class="utilbar">
-  <div class="u-l">🚚 จัดส่งฟรี! เมื่อซื้อครบ ฿499.-</div>
+  <div class="u-l">🚚 จัดส่งฟรี! เมื่อซื้อครบ ฿600.-</div>
   <div class="u-c"><span id="announce-text">🐾 อุ๋งอิ๋ง คอยช่วยเลือกของให้น้อง ตอบไว 24 ชม.</span><span id="cd-wrap" style="display:none">&nbsp;·&nbsp; 🔥 <span data-i18n="promoFlash">โปรหมดใน</span> <span class="cd-time" id="cd-time">--:--:--</span></span></div>
   <div class="u-r">
     <span class="soc" title="Facebook"><i class="ti ti-brand-facebook"></i></span><span class="soc" title="Instagram"><i class="ti ti-brand-instagram"></i></span><span class="soc" title="TikTok"><i class="ti ti-brand-tiktok"></i></span><span class="soc" title="LINE"><i class="ti ti-brand-line"></i></span>
@@ -640,7 +640,7 @@ body.overlay-open #chat-btn{opacity:0;pointer-events:none;transform:scale(.6)}
 <!-- HEADER: brand + search + account -->
 <div class="shelf">
   <div class="brand" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="อุ้งเท้าช็อป">
-    <img src="images/logo.png" alt="อุ้งเท้าช็อป — ของใช้ดี ๆ สำหรับเพื่อนตัวน้อย" class="brand-logo-full">
+    <img src="images/logo.png?v=2" alt="อุ้งเท้าช็อป — ของใช้ดี ๆ สำหรับเพื่อนตัวน้อย" class="brand-logo-full">
   </div>
   <form class="shelf-search" onsubmit="return headerSearch(event)">
     <input id="hdrSearch" type="search" placeholder="ค้นหาสินค้า..." aria-label="ค้นหาสินค้า">
@@ -660,12 +660,10 @@ body.overlay-open #chat-btn{opacity:0;pointer-events:none;transform:scale(.6)}
 <nav class="navmenu">
   <a class="active" onclick="window.scrollTo({top:0,behavior:'smooth'})">หน้าแรก</a>
   <a data-i18n="navProducts" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">สินค้า</a>
-  <a onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">บ้านแมว<span class="nm-new">ใหม่</span></a>
   <a onclick="document.getElementById('foryou').scrollIntoView({behavior:'smooth'})">สินค้าแนะนำ</a>
-  <a onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">โปรโมชัน</a>
+  <a onclick="document.getElementById('promo').scrollIntoView({behavior:'smooth'})">โปรโมชั่น</a>
   <a class="nm-game" onclick="openGames()">🎮 เกมรับแต้ม</a>
   <a onclick="document.getElementById('story').scrollIntoView({behavior:'smooth'})">บทความ</a>
-  <a onclick="document.getElementById('trust').scrollIntoView({behavior:'smooth'})">รีวิวจากลูกค้า</a>
   <a data-i18n="navAbout" onclick="openPolicy('contact')">ติดต่อเรา</a>
 </nav>
 </div><!-- /#topbar -->
@@ -680,7 +678,7 @@ body.overlay-open #chat-btn{opacity:0;pointer-events:none;transform:scale(.6)}
         <span class="hfeat"><i class="ti ti-award"></i> คุณภาพดี</span>
         <span class="hfeat"><i class="ti ti-tag"></i> ราคาน่ารัก</span>
         <span class="hfeat"><i class="ti ti-heart-handshake"></i> บริการใส่ใจ</span>
-        <span class="hfeat"><i class="ti ti-truck-delivery"></i> ส่งไว 1-2 วัน</span>
+        <span class="hfeat"><i class="ti ti-truck-delivery"></i> ส่งไว 2-3 วัน</span>
       </div>
       <div class="hbtns">
         <button class="hbtn-1" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})"><i class="ti ti-shopping-cart"></i> ช้อปเลย</button>
@@ -722,11 +720,18 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
 
 <!-- TRUST BAR -->
 <div class="trustbar">
-  <div class="tb"><span class="tb-ic"><i class="ti ti-truck-delivery"></i></span><div><b data-i18n="trust3t">ส่งไว 1-2 วัน</b><small>ทั่วประเทศ</small></div></div>
+  <div class="tb"><span class="tb-ic"><i class="ti ti-truck-delivery"></i></span><div><b data-i18n="trust3t">ส่งไว 2-3 วัน</b><small>ทั่วประเทศ</small></div></div>
   <div class="tb"><span class="tb-ic"><i class="ti ti-shield-check"></i></span><div><b>ของแท้ 100%</b><small>มั่นใจคุณภาพ</small></div></div>
   <div class="tb"><span class="tb-ic"><i class="ti ti-refresh"></i></span><div><b>เปลี่ยนคืนง่าย</b><small>ภายใน 7 วัน</small></div></div>
   <div class="tb"><span class="tb-ic"><i class="ti ti-lock"></i></span><div><b data-i18n="trust1t">ชำระปลอดภัย</b><small>หลายช่องทาง</small></div></div>
 </div>
+
+<!-- PROMO — สินค้าลดราคา (วางก่อนสินค้า) -->
+<section id="promo" style="max-width:1280px;margin:14px auto 0;padding:0 24px;display:none">
+  <div class="section-label" style="color:var(--primary)">🔥 โปรโมชั่น</div>
+  <h2 class="section-title" data-i18n="promoTitle" style="margin-bottom:16px">สินค้าลดราคาพิเศษ</h2>
+  <div class="products-grid" id="promoGrid"></div>
+</section>
 
 <!-- PRODUCTS HEADING (ย้ายขึ้นเหนือไอคอนหมวด) -->
 <div class="prodhead" style="max-width:1280px;margin:26px auto 2px;padding:0 24px">
@@ -840,7 +845,7 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
 <!-- FOOTER -->
 <footer id="footer">
   <div class="footer-logo" style="display:flex;justify-content:center">
-    <img src="images/logo.png" alt="อุ้งเท้าช็อป" style="height:84px;width:auto">
+    <img src="images/logo.png?v=2" alt="อุ้งเท้าช็อป" style="height:84px;width:auto">
   </div>
   <p data-i18n="fTagline">ของใช้ดี ๆ สำหรับเพื่อนตัวน้อยของคุณ · ดูแลด้วยใจ พร้อมอุ๋งอิ๋ง AI 🐾</p>
   <p style="margin-top:10px">
@@ -1040,7 +1045,7 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
   <div class="modal-box" style="max-width:420px">
     <button class="modal-close-btn" onclick="document.getElementById('login-modal').classList.remove('show')">✕</button>
     <div class="login-modal-body">
-      <div style="text-align:center;margin-bottom:14px"><img src="logo.png" class="login-logo-img" alt="อุ้งเท้าช็อป"></div>
+      <div style="text-align:center;margin-bottom:14px"><img src="images/logo.png?v=2" class="login-logo-img" alt="อุ้งเท้าช็อป"></div>
       <div class="login-title" id="login-title">เข้าสู่ระบบ</div>
       <div class="login-sub" id="login-sub">เข้าสู่ระบบเพื่อติดตามออเดอร์และสิทธิพิเศษสมาชิก</div>
       <div id="login-error" style="display:none;color:var(--primary2);font-size:.82rem;margin-bottom:10px"></div>
@@ -1423,7 +1428,7 @@ async function syncProductsFromSupabase() {
     });
     try { applyFlash(); } catch (e) {}
     applyProductView();
-    try { renderRecent(); renderForYou(); renderFlashTimers(); } catch (e) {}
+    try { renderRecent(); renderForYou(); renderPromo(); renderFlashTimers(); } catch (e) {}
   } catch (e) {
     /* keep static fallback */
   }
@@ -1683,7 +1688,7 @@ const LISA = {
   'ว่าไง':'สวัสดีค่ะ อุ๋งอิ๋งอยู่ตรงนี้น้า~ 🐾 อยากได้อะไรให้น้อง บอกได้เลยค่ะ',
   'สั่ง':'วิธีสั่งซื้อง่ายมากค่ะ 1) กด VIEW DETAILS 2) เลือกจำนวน กด "เพิ่มในตะกร้า" 3) กดไอคอนตะกร้า 4) กรอกข้อมูลและกด "ยืนยันออเดอร์" ค่ะ 🛒',
   'วิธีสั่ง':'วิธีสั่งซื้อ: กด VIEW DETAILS → เพิ่มในตะกร้า → กดตะกร้า → ชำระเงิน ง่ายมากค่ะ',
-  'ส่ง':'จัดส่งทั่วไทยค่ะ ปกติ 3-5 วันทำการหลังยืนยันการชำระเงิน 🚚',
+  'ส่ง':'จัดส่งทั่วไทยค่ะ ปกติ 2-3 วันทำการหลังยืนยันการชำระเงิน 🚚',
 };
 
 // คำตอบที่อิงข้อมูลจริง — ดึงจาก PRODUCTS (sync DB) + SHOP_CFG (ตั้งค่าร้าน) ไม่ฝังราคา/บัญชีตาย
@@ -2085,7 +2090,7 @@ const I18N={ en:{
   promoFlash:"Today's deal ends in", bnHome:'Home',bnShop:'Shop',bnChat:'Ung-Ing',bnCart:'Cart',bnMe:'Me',
   cookieMsg:'🍪 We use cookies to improve your experience and analytics, per our',
   cookieLink:'Privacy Policy',cookieAccept:'Accept',cookieDeny:'Decline',
-  fPrivacy:'Privacy Policy',fReturn:'Returns',fShip:'Shipping', foryouTitle:'Picked for you',
+  fPrivacy:'Privacy Policy',fReturn:'Returns',fShip:'Shipping', foryouTitle:'Picked for you', promoTitle:'Special Offers',
   payMethod:'Payment method', payTransfer:'📲 Transfer/PromptPay', payCod:'🚚 Cash on delivery',
   /* nav */ navProducts:'Products', navAbout:'About us', navMyOrders:'📦 My orders', navLogin:'Sign in',
   /* hero */ heroBadge:'AUNGTAOSHOP · Complete pet supplies', heroTitle:'Care for your pet with the best, hand-picked', heroSub:'Good things for your dogs and cats, chosen like for a dear friend 🐾 fast delivery nationwide', heroCta1:'Shop now →', heroCta2:'💬 Ask Ung-Ing',
@@ -2238,23 +2243,49 @@ function renderCrossSell(p){
 
 /* ════════ FOR YOU (AI reco) — Phase 6 ════════ */
 function renderForYou(){
-  const sec=$('foryou'), grid=$('foryouGrid'); if(!sec) return;
+  const sec=$('foryou'), grid=$('foryouGrid'); if(!sec||!grid) return;
   const seenCats={};
   RECENT.forEach(s=>{ const p=PRODUCTS.find(x=>x.slug===s); if(p)seenCats[p.cat]=(seenCats[p.cat]||0)+2; });
   (WISHLIST||[]).forEach(s=>{ const p=PRODUCTS.find(x=>x.slug===s); if(p)seenCats[p.cat]=(seenCats[p.cat]||0)+1; });
-  if(!Object.keys(seenCats).length){ sec.style.display='none'; return; }
   const seenSlugs=new Set([...(RECENT||[]),...(WISHLIST||[])]);
-  const scored=PRODUCTS.filter(p=>!seenSlugs.has(p.slug)&&(p.available==null||p.available>0))
-    .map(p=>({p,s:(seenCats[p.cat]||0)+(p.orig?0.5:0)})).sort((a,b)=>b.s-a.s).slice(0,4).map(o=>o.p);
-  if(scored.length<2){ sec.style.display='none'; return; }
+  const hasHistory=Object.keys(seenCats).length>0;
+  let picks=[];
+  if(hasHistory){
+    picks=PRODUCTS.filter(p=>!seenSlugs.has(p.slug)&&(p.available==null||p.available>0))
+      .map(p=>({p,s:(seenCats[p.cat]||0)+(p.orig?0.5:0)})).sort((a,b)=>b.s-a.s).slice(0,4).map(o=>o.p);
+  }
+  // ผสม: ยังไม่มีประวัติ (หรือได้น้อย) → คัดสินค้าเด่นเองให้ทุกคนเห็น
+  if(picks.length<2){
+    const feat=['cat-house-nordic','pet-bed-soft','catnip-toy','rope-ball'];
+    picks=feat.map(sl=>PRODUCTS.find(p=>p.slug===sl)).filter(p=>p&&(p.available==null||p.available>0));
+    PRODUCTS.filter(p=>(p.available==null||p.available>0)&&picks.indexOf(p)<0).forEach(p=>{ if(picks.length<4)picks.push(p); });
+    picks=picks.slice(0,4);
+  }
+  if(picks.length<2){ sec.style.display='none'; return; }
   sec.style.display='block';
-  grid.innerHTML=scored.map(p=>{
+  grid.innerHTML=picks.map(p=>{
     const disc=p.orig?Math.round((1-p.price/p.orig)*100):0;
     return `<div class="product-card" onclick="openProductModal('${p.slug}')" style="cursor:pointer">
       <div class="product-card-img-wrap"><img class="product-card-img" src="${imgUrl(p)}" alt="${p.name_th}" loading="lazy">
       ${disc?`<span class="discount-badge">-${disc}%</span>`:''}</div>
       <div class="product-card-body"><div class="product-cat">${p.cat}</div><div class="product-name">${p.name_th}</div>
       <div class="product-price-row"><span class="product-price">฿${p.price}</span>${p.orig?`<span class="product-price-orig">฿${p.orig}</span>`:''}</div></div></div>`;
+  }).join('');
+}
+
+/* ════════ PROMO — สินค้าลดราคา (วางก่อนสินค้า) ════════ */
+function renderPromo(){
+  const sec=$('promo'), grid=$('promoGrid'); if(!sec||!grid) return;
+  const onSale=PRODUCTS.filter(p=>p.orig&&p.orig>p.price&&(p.available==null||p.available>0));
+  if(!onSale.length){ sec.style.display='none'; return; }
+  sec.style.display='block';
+  grid.innerHTML=onSale.map(p=>{
+    const disc=Math.round((1-p.price/p.orig)*100);
+    return `<div class="product-card" onclick="openProductModal('${p.slug}')" style="cursor:pointer">
+      <div class="product-card-img-wrap"><img class="product-card-img" src="${imgUrl(p)}" alt="${p.name_th}" loading="lazy">
+      <span class="discount-badge">-${disc}%</span></div>
+      <div class="product-card-body"><div class="product-cat">${p.cat}</div><div class="product-name">${p.name_th}</div>
+      <div class="product-price-row"><span class="product-price">฿${p.price}</span><span class="product-price-orig">฿${p.orig}</span></div></div></div>`;
   }).join('');
 }
 
@@ -2345,19 +2376,19 @@ const POLICIES={
     en:`<h2>Return Policy</h2><p>As food items, every piece is quality-checked before shipping.</p>
     <h3>Eligible for return</h3><ul><li>Damaged, spoiled or expired on arrival</li><li>Wrong item shipped</li></ul>
     <h3>How to report</h3><p>Photograph the item and parcel, notify Ung-Ing within 3 days of receipt — we'll reship or fully refund.</p>`},
-  shipping:{th:`<h2>นโยบายการจัดส่ง</h2><ul><li>จัดส่งทั่วไทยผ่านขนส่งมาตรฐาน 3-5 วันทำการหลังยืนยันชำระเงิน</li>
+  shipping:{th:`<h2>นโยบายการจัดส่ง</h2><ul><li>จัดส่งทั่วไทยผ่านขนส่งมาตรฐาน 2-3 วันทำการหลังยืนยันชำระเงิน</li>
     <li>ส่งฟรีเมื่อซื้อครบ ฿600</li><li>บรรจุภัณฑ์กันกระแทก เก็บความกรอบ</li><li>แจ้งเลขพัสดุผ่าน "ออเดอร์ของฉัน" และ LINE</li></ul>`,
-    en:`<h2>Shipping Policy</h2><ul><li>Nationwide standard delivery, 3-5 business days after payment confirmation</li>
+    en:`<h2>Shipping Policy</h2><ul><li>Nationwide standard delivery, 2-3 business days after payment confirmation</li>
     <li>Free shipping over ฿600</li><li>Sturdy packaging protects every item</li><li>Tracking shown in "My Orders" and via LINE</li></ul>`},
   faq:{th:`<h2>คำถามที่พบบ่อย (FAQ)</h2>
-    <h3>🚚 จัดส่งกี่วัน?</h3><p>3-5 วันทำการหลังยืนยันการชำระเงิน · ส่งทั่วไทยผ่านขนส่งมาตรฐาน</p>
+    <h3>🚚 จัดส่งกี่วัน?</h3><p>2-3 วันทำการหลังยืนยันการชำระเงิน · ส่งทั่วไทยผ่านขนส่งมาตรฐาน</p>
     <h3>💰 ค่าส่งเท่าไร?</h3><p>ส่งฟรีเมื่อซื้อครบ ฿600 · ต่ำกว่านั้นคิดค่าส่งตามจริง (ระบบแจ้งยอดก่อนยืนยัน)</p>
     <h3>🗓️ สินค้าเก็บได้นานไหม?</h3><p>ดูช่อง "อายุการเก็บ" และ "วิธีเก็บรักษา" ในหน้าสินค้าแต่ละชิ้น · อาหารสัตว์ควรปิดถุงให้สนิทเก็บในที่แห้ง เพื่อคงความสดและกลิ่นหอม</p>
     <h3>💳 ชำระเงินอย่างไร?</h3><p>โอน/PromptPay (เลขร้านในหน้าชำระเงิน) แล้วแจ้งสลิป ระบบตรวจอัตโนมัติ · หรือเลือกเก็บเงินปลายทาง (COD)</p>
     <h3>📦 ของเสียหาย/ส่งผิดทำอย่างไร?</h3><p>ถ่ายรูปสินค้า+กล่องพัสดุ แจ้งอุ๋งอิ๋งภายใน 3 วันหลังรับของ เราส่งใหม่หรือคืนเงินเต็มจำนวนค่ะ</p>
     <h3>🥜 มีข้อมูลสารก่อภูมิแพ้ไหม?</h3><p>ดูได้ในหน้าสินค้าแต่ละชิ้น (ส่วนประกอบ/สารก่อภูมิแพ้) · หากแพ้อาหารบางชนิด สอบถามอุ๋งอิ๋งก่อนสั่งได้เลยค่ะ</p>`,
     en:`<h2>FAQ</h2>
-    <h3>🚚 How long is delivery?</h3><p>3-5 business days after payment confirmation, nationwide.</p>
+    <h3>🚚 How long is delivery?</h3><p>2-3 business days after payment confirmation, nationwide.</p>
     <h3>💰 Shipping cost?</h3><p>Free over ฿600; otherwise actual rate (shown before you confirm).</p>
     <h3>🗓️ Shelf life?</h3><p>See "shelf life" and "storage" on each product page. Most dry snacks keep for weeks when sealed and kept dry.</p>
     <h3>💳 How to pay?</h3><p>Bank transfer / PromptPay (details on checkout) then upload the slip for auto-verification, or Cash on Delivery (COD).</p>
@@ -2377,11 +2408,10 @@ const POLICIES={
     <p style="margin-top:10px">Payment: PromptPay 0982695608 / Kasikornbank 1443385696 (acct: Aungtao Shop) — transfer to this account only.</p>`}
 };
 function openPolicy(key){ const en=localStorage.getItem('lt_lang')==='en'; const p=POLICIES[key]; if(!p)return;
-  $('policy-content').innerHTML=en?p.en:p.th; $('policy-modal').classList.add('show'); track('view_policy',{policy:key});
-  try{ history.replaceState(null,'','#'+key); }catch(e){} }
+  $('policy-content').innerHTML=en?p.en:p.th; $('policy-modal').classList.add('show'); track('view_policy',{policy:key}); }
 window.openPolicy=openPolicy;
-// shareable deep links: #privacy #shipping #return(s) #faq #contact
-(function(){ try{ let h=(location.hash||'').replace('#',''); if(h==='returns') h='return'; if(h && POLICIES[h]) setTimeout(()=>openPolicy(h),350); }catch(e){} })();
+// ล้าง hash เก่าที่ค้างใน URL ตอนโหลด (กัน policy popup เช่น #contact เด้งเองทุกครั้งที่รีเฟรช) — ไม่ auto-open อีกต่อไป
+(function(){ try{ if(location.hash) history.replaceState(null,'',location.pathname+location.search); }catch(e){} })();
 
 /* ════════ COOKIE CONSENT + GA4 — Phase 7 ════════ */
 const GA_MEASUREMENT_ID='G-LF3TNLTF62'; // GA4 property "ร้านอุ้งเท้าช็อป เว็บ" (Session 9) — เก็บหลังลูกค้ายอมรับคุกกี้
@@ -2547,8 +2577,8 @@ function countUp(el){
 /* ════════ INIT (after Supabase sync) ════════ */
 updateCartUI();               // refresh freeship bar + bottom-nav badge from persisted cart
 applyProductView();           // re-render so quick-add buttons appear
-renderRecent(); renderForYou();
-setTimeout(()=>{ applyProductView(); renderRecent(); renderForYou(); injectSchema(); if(localStorage.getItem('lt_lang')==='en')applyLang('en'); },1500);
+renderRecent(); renderForYou(); renderPromo();
+setTimeout(()=>{ applyProductView(); renderRecent(); renderForYou(); renderPromo(); injectSchema(); if(localStorage.getItem('lt_lang')==='en')applyLang('en'); },1500);
 
 })();
 </script>
