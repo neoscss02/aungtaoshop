@@ -509,8 +509,8 @@ body.dark #bottom-nav{background:#241c15}
   #assistantDock{display:none}
   .hero-pets img{width:80%;max-width:80%}
   .hero-pets{min-height:auto}
-  #foryou,#recently{padding-bottom:80px}
-  #footer{padding-bottom:74px}
+  #foryou,#recently{padding-bottom:130px}
+  #footer{padding-bottom:124px}
   #chat-btn{bottom:72px}
   #toast-container{bottom:140px}
 }
@@ -521,6 +521,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* 4A (หมวด 7): ซ่อนปุ่มแชตลอยเมื่อมี overlay เปิด ไม่ให้ทับปุ่มซื้อ/ชำระเงิน */
 body.overlay-open #chat-btn{opacity:0;pointer-events:none;transform:scale(.6)}
 .wish-btn{opacity:.82}
+/* ===== DEMO NOTICE BAR (fixed bottom + gold shine · แบบ LUMINA) ===== */
+.demo-bar{position:fixed;left:0;right:0;bottom:0;z-index:830;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(90deg,#4a3b2f,#5b4636 50%,#4a3b2f);color:#f4e4d0;font-size:12.5px;letter-spacing:.3px;text-align:center;padding:10px 18px;overflow:hidden;box-shadow:0 -6px 24px -10px rgba(0,0,0,.4);border-top:1px solid rgba(242,163,60,.35)}
+.demo-bar b{color:var(--gold);font-weight:800;letter-spacing:2px}
+.demo-txt{background:linear-gradient(100deg,#e8c79a 0%,#e8c79a 44%,#fff6e6 50%,#e8c79a 56%,#e8c79a 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:textShine 6.5s linear infinite}
+@keyframes textShine{0%{background-position:115% 0}100%{background-position:-115% 0}}
+body{padding-bottom:42px}
+@media(max-width:860px){.demo-bar{font-size:11px;padding:8px 12px;line-height:1.4}}
+@media(max-width:600px){.demo-bar{bottom:calc(58px + env(safe-area-inset-bottom))} body{padding-bottom:0}}
 </style>
 </head>
 <body>
@@ -870,6 +878,11 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
   <p style="margin-top:8px" data-i18n="fCredit">ผู้พัฒนาระบบ neos-css.com by Comtech&nbsp;Solution&nbsp;System&nbsp;Co.,&nbsp;Ltd.</p>
 </footer>
 
+<!-- ===== DEMO NOTICE BAR ===== -->
+<div class="demo-bar">
+  <b>DEMO</b> <span class="demo-txt" data-i18n="demoTxt">· เว็บสาธิตระบบ — การสั่งซื้อทั้งหมดเป็นการทดสอบ ไม่มีการจัดส่งสินค้าหรือเรียกเก็บเงินจริง</span>
+</div>
+
 <!-- ABOUT PANEL -->
 <div id="about-overlay" onclick="closeAbout()"></div>
 <div id="about-panel">
@@ -1005,7 +1018,7 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
       </div>
       <div class="payment-info" id="payment-info-box">
         <div class="payment-info-title">💳 ข้อมูลชำระเงิน</div>
-        <div class="payment-info-row"><span>PromptPay</span><span id="pi-promptpay">0982695608</span></div>
+        <div class="payment-info-row"><span>PromptPay</span><span id="pi-promptpay">0626964155</span></div>
         <div class="payment-info-row"><span id="pi-bank-label">กสิกรไทย</span><span id="pi-bank-no">1443385696</span></div>
         <div class="payment-info-row"><span>ชื่อบัญชี</span><span id="pi-account">ร้านอุ้งเท้าช็อป</span></div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:.74rem;color:var(--muted);line-height:1.6">
@@ -1041,7 +1054,7 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
       <div id="confirm-qr-block" style="background:#fff8ee;border:1px solid #f0d890;border-radius:14px;padding:18px 16px;margin-bottom:16px">
         <div style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:10px">📲 สแกนจ่ายด้วย PromptPay</div>
         <div id="pp-qr" style="width:200px;height:200px;margin:0 auto;display:flex;align-items:center;justify-content:center"></div>
-        <div style="font-size:.8rem;color:var(--muted);margin-top:8px">ร้านอุ้งเท้าช็อป · PromptPay 0982695608</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:8px">ร้านอุ้งเท้าช็อป · PromptPay 0626964155</div>
         <div style="font-size:.95rem;font-weight:700;color:var(--primary);margin-top:2px" id="pp-amount"></div>
       </div>
 
@@ -1731,7 +1744,7 @@ function lisaRecommend(){
 }
 function lisaPayment(){
   const c=window.SHOP_CFG||{};
-  const pp=c.promptpay||'0982695608', bank=c.bank_name||'กสิกรไทย', bno=c.bank_no||'1443385696', acc=c.bank_account||'ร้านอุ้งเท้าช็อป';
+  const pp=c.promptpay||'0626964155', bank=c.bank_name||'กสิกรไทย', bno=c.bank_no||'1443385696', acc=c.bank_account||'ร้านอุ้งเท้าช็อป';
   return `ช่องทางชำระเงินค่ะ 💳\n💳 PromptPay: ${pp}\n🏦 ${bank}: ${bno}\nชื่อบัญชี: ${acc}\nโอนแล้วส่งสลิปให้อุ๋งอิ๋งได้เลยนะคะ`;
 }
 
@@ -2005,7 +2018,7 @@ function showPromptPayQR(amount){
   document.getElementById('pp-amount').textContent = 'ยอดชำระ ฿'+amount;
   try {
     const qr = qrcode(0, 'M');
-    qr.addData(promptPayPayload('0982695608', amount));
+    qr.addData(promptPayPayload('0626964155', amount));
     qr.make();
     document.getElementById('pp-qr').innerHTML = qr.createImgTag(5, 8);
   } catch(e){ console.warn('QR', e); }
@@ -2160,7 +2173,7 @@ const I18N={ en:{
   fAll:'All', fDogFood:'Dog food', fCatFood:'Cat food', fToy:'Toys', fGear:'Supplies', fLitter:'Cat litter', fTreat:'Treats', fGroom:'Grooming', fWish:'❤️ Favourites',
   searchPh:'🔍 Search products...', sortDefault:'Recommended', sortPriceAsc:'Price: low→high', sortPriceDesc:'Price: high→low', sortName:'Name A–Z',
   /* testimonials */ tLabel:'✦ Voices from customers', tTitle:'Reviews from real customers',
-  /* footer */ fTagline:'Good things for your furry little friends · cared for with heart, with Ung-Ing AI 🐾', fCredit:'Developed by neos-css.com · Comtech Solution System Co., Ltd.',
+  /* footer */ demoTxt:'· Demonstration site — all orders are for testing only, with no real shipping or charges.', fTagline:'Good things for your furry little friends · cared for with heart, with Ung-Ing AI 🐾', fCredit:'Developed by neos-css.com · Comtech Solution System Co., Ltd.',
   /* about panel */ aboutTagline:'Complete pet supplies, delivered to your door',
   aboutText:'At Aungtao Shop we believe your dog or cat is family — so we hand-pick toys and supplies with love, only what we would give our own pets, bringing happiness to your furry little friend at home. 🐾',
   aboutF1t:'Quality, selected products', aboutF1s:'Genuine, safe, up to standard',
@@ -2458,13 +2471,13 @@ const POLICIES={
     <ul><li>💬 <b>แชตอุ๋งอิ๋ง AI</b> บนเว็บนี้ — ตอบอัตโนมัติ 24 ชม. (ปุ่มแชตมุมขวาล่าง)</li>
     <li>📱 <b>LINE OA:</b> @อุ้งเท้าช็อป (แอดมินตอบกลับในเวลาทำการ)</li>
     <li>🏪 <b>ร้านอุ้งเท้าช็อป</b> — ของใช้สัตว์เลี้ยงครบวงจร ส่งตรงถึงบ้าน</li></ul>
-    <p style="margin-top:10px">ชำระเงิน: PromptPay 0982695608 / กสิกรไทย 1443385696 (ชื่อบัญชี ร้านอุ้งเท้าช็อป) — โปรดโอนเข้าบัญชีนี้เท่านั้น</p>`,
+    <p style="margin-top:10px">ชำระเงิน: PromptPay 0626964155 / กสิกรไทย 1443385696 (ชื่อบัญชี ร้านอุ้งเท้าช็อป) — โปรดโอนเข้าบัญชีนี้เท่านั้น</p>`,
     en:`<h2>Contact Aungtao Shop</h2>
     <p>We're happy to help 💛</p>
     <ul><li>💬 <b>Ung-Ing AI chat</b> on this site — 24/7 auto-reply (bottom-right button)</li>
     <li>📱 <b>LINE OA:</b> @lanthong (admin replies during business hours)</li>
     <li>🏪 <b>Aungtao Shop</b> — curated pet supplies, delivered to your door</li></ul>
-    <p style="margin-top:10px">Payment: PromptPay 0982695608 / Kasikornbank 1443385696 (acct: Aungtao Shop) — transfer to this account only.</p>`}
+    <p style="margin-top:10px">Payment: PromptPay 0626964155 / Kasikornbank 1443385696 (acct: Aungtao Shop) — transfer to this account only.</p>`}
 };
 function openPolicy(key){ const en=localStorage.getItem('lt_lang')==='en'; const p=POLICIES[key]; if(!p)return;
   $('policy-content').innerHTML=en?p.en:p.th; $('policy-modal').classList.add('show'); track('view_policy',{policy:key}); }
