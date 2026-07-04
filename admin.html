@@ -1368,6 +1368,25 @@
         <div id="rw-list" style="margin-top:16px;display:grid;gap:10px"></div>
       </div>
 
+      <!-- คำขอแลกของรางวัล (redeem จริง · ลูกค้ากดแลกจากเว็บ) -->
+      <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+          <div class="table-title">📥 คำขอแลกของรางวัล</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="rwreq-filter" class="form-input" style="width:auto;padding:7px 10px" onchange="loadRewardRequests()">
+              <option value="pending">รอดำเนินการ</option>
+              <option value="approved">อนุมัติแล้ว</option>
+              <option value="done">จบงาน</option>
+              <option value="rejected">ปฏิเสธ</option>
+              <option value="">ทั้งหมด</option>
+            </select>
+            <button onclick="loadRewardRequests()" style="padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--white);cursor:pointer;font-size:13px">🔄 รีเฟรช</button>
+          </div>
+        </div>
+        <div class="page-sub" style="margin-bottom:12px">ลูกค้ากดแลก = <b>หักแต้มทันที</b> · <b>อนุมัติ</b> = รับเรื่องจัดส่ง · <b>ปฏิเสธ</b> = คืนแต้มอัตโนมัติ · <b>จบงาน</b> = ส่งของแล้ว</div>
+        <div id="rwreq-list" style="display:grid;gap:10px"></div>
+      </div>
+
       <div class="table-card" style="margin-top:18px">
         <div class="table-header">
           <div class="table-title">🏆 ลูกค้าสะสมแต้มสูงสุด</div>
@@ -4729,6 +4748,7 @@
     const summary = document.getElementById('loyalty-summary');
     loadLoyaltyCfg();   // เติมฟอร์มกฎแต้มจาก loyalty_config
     loadRewards();      // เมนูของรางวัล
+    loadRewardRequests(); // คำขอแลกของรางวัล (redeem จริง)
     wrap.innerHTML = '<div class="loading-overlay"><span class="loading-spin"></span></div>';
     if (summary) summary.textContent = '—';
     try {
@@ -4886,6 +4906,64 @@
   }
   window.loadRewards = loadRewards; window.rwPreview = rwPreview; window.resetRewardForm = resetRewardForm;
   window.editReward = editReward; window.saveReward = saveReward; window.deleteReward = deleteReward; window.uploadRewardImg = uploadRewardImg;
+
+  // ===== คำขอแลกของรางวัล (reward_requests · ลูกค้ากดแลกจากเว็บ → worker หักแต้มแล้ว) =====
+  const RWREQ_STATUS = {
+    pending:  { t: 'รอดำเนินการ', c: '#a67908', bg: '#fff6e0' },
+    approved: { t: 'อนุมัติแล้ว',  c: '#1e7a3e', bg: '#e8f7ee' },
+    done:     { t: 'จบงาน',        c: '#555',    bg: '#eeeeee' },
+    rejected: { t: 'ปฏิเสธ',       c: '#b23333', bg: '#fdeaea' },
+  };
+  async function loadRewardRequests() {
+    const wrap = document.getElementById('rwreq-list'); if (!wrap) return;
+    const st = (document.getElementById('rwreq-filter') || {}).value || '';
+    wrap.innerHTML = '<div class="loading-overlay"><span class="loading-spin"></span></div>';
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/reward-requests' + (st ? ('?status=' + encodeURIComponent(st)) : ''), { headers: { 'Authorization': 'Bearer ' + (await adminToken()) } });
+      const j = await r.json();
+      if (!r.ok || j.error) throw new Error(j.error || 'โหลดไม่สำเร็จ');
+      const list = j.requests || [];
+      if (!list.length) { wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">ไม่มีคำขอในสถานะนี้ค่ะ</div>'; return; }
+      wrap.innerHTML = list.map(q => {
+        const s = RWREQ_STATUS[q.status] || { t: q.status, c: '#555', bg: '#eee' };
+        const dt = q.created_at ? new Date(q.created_at).toLocaleString('th-TH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+        const who = escHtml(q.member_name || q.member_email || q.customer_key || '-');
+        const contact = [q.member_no, q.member_phone].filter(Boolean).map(escHtml).join(' · ');
+        const bBase = 'padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;border:none';
+        let btns = '';
+        if (q.status === 'pending') {
+          btns = `<button onclick="rewardReqAction(${q.id},'approve')" style="${bBase};background:#1e8a4f;color:#fff">✅ อนุมัติ</button>`
+               + `<button onclick="rewardReqAction(${q.id},'reject')" style="${bBase};background:var(--white);border:1px solid #d99;color:#b23333">↩️ ปฏิเสธ + คืนแต้ม</button>`;
+        } else if (q.status === 'approved') {
+          btns = `<button onclick="rewardReqAction(${q.id},'done')" style="${bBase};background:var(--gold,#c8912a);color:#fff">📦 จบงาน (ส่งแล้ว)</button>`
+               + `<button onclick="rewardReqAction(${q.id},'reject')" style="${bBase};background:var(--white);border:1px solid #d99;color:#b23333">↩️ ปฏิเสธ + คืนแต้ม</button>`;
+        }
+        return `<div style="border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--white)">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
+            <div style="min-width:0">
+              <div style="font-weight:700">🎁 ${escHtml(q.reward_title || '-')} <span style="color:var(--gold);font-weight:800">· ${Number(q.points_cost) || 0} แต้ม</span></div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:3px">👤 ${who}${contact ? (' · ' + contact) : ''}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">🕒 ${escHtml(dt)}</div>
+              ${q.admin_note ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">📝 ${escHtml(q.admin_note)}</div>` : ''}
+            </div>
+            <span style="font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px;white-space:nowrap;background:${s.bg};color:${s.c}">${s.t}</span>
+          </div>
+          ${btns ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">${btns}</div>` : ''}
+        </div>`;
+      }).join('');
+    } catch (e) { wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>${escHtml(e.message)}</div>`; }
+  }
+  async function rewardReqAction(id, action) {
+    const labels = { approve: 'อนุมัติคำขอนี้', reject: 'ปฏิเสธและคืนแต้มให้ลูกค้า', done: 'ทำเครื่องหมายจบงาน (ส่งของแล้ว)' };
+    if (!confirm('ยืนยัน' + (labels[action] || action) + ' ?')) return;
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/reward-request-update', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) }, body: JSON.stringify({ id, action }) });
+      const j = await r.json();
+      if (j.ok) { if (j.refunded) alert('↩️ คืนแต้มให้ลูกค้า ' + j.refunded + ' แต้มแล้วค่ะ'); loadRewardRequests(); if (typeof loadMembers === 'function') loadMembers(); }
+      else alert('❌ ' + (j.error || 'ทำรายการไม่สำเร็จ'));
+    } catch (e) { alert('❌ ' + (e.message || e)); }
+  }
+  window.loadRewardRequests = loadRewardRequests; window.rewardReqAction = rewardReqAction;
 
   // ===== ทะเบียนสมาชิก (members table · /admin/members) =====
   let allMembers = [];
