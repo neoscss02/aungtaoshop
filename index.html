@@ -506,6 +506,9 @@ body.dark #bottom-nav{background:#241c15}
 
 @media(max-width:600px){
   #bottom-nav{display:block}
+  #assistantDock{display:none}
+  .hero-pets img{width:80%;max-width:80%}
+  .hero-pets{min-height:auto}
   #foryou,#recently{padding-bottom:80px}
   #footer{padding-bottom:74px}
   #chat-btn{bottom:72px}
@@ -857,14 +860,14 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
     <div class="brand-words"><span class="brand-name">อุ้งเท้า<i class="ti ti-paw-filled"></i>ช็อป</span><span class="brand-tag">ของดี ๆ สำหรับเพื่อนตัวน้อย</span></div>
   </div>
   <p data-i18n="fTagline">ของใช้ดี ๆ สำหรับเพื่อนตัวน้อยของคุณ · ดูแลด้วยใจ พร้อมอุ๋งอิ๋ง AI 🐾</p>
-  <p style="margin-top:10px">
-    <a onclick="openPolicy('faq')" style="cursor:pointer;color:var(--gold)" data-i18n="fFaq">คำถามพบบ่อย</a> ·
-    <a onclick="openPolicy('contact')" style="cursor:pointer;color:var(--gold)" data-i18n="fContact">ติดต่อเรา</a> ·
-    <a onclick="openPolicy('privacy')" style="cursor:pointer;color:var(--gold)" data-i18n="fPrivacy">นโยบายความเป็นส่วนตัว</a> ·
-    <a onclick="openPolicy('return')" style="cursor:pointer;color:var(--gold)" data-i18n="fReturn">การคืนสินค้า</a> ·
-    <a onclick="openPolicy('shipping')" style="cursor:pointer;color:var(--gold)" data-i18n="fShip">การจัดส่ง</a>
+  <p style="margin-top:10px;line-height:2">
+    <a onclick="openPolicy('faq')" style="cursor:pointer;color:var(--gold);white-space:nowrap" data-i18n="fFaq">คำถามพบบ่อย</a> ·
+    <a onclick="openPolicy('contact')" style="cursor:pointer;color:var(--gold);white-space:nowrap" data-i18n="fContact">ติดต่อเรา</a> ·
+    <a onclick="openPolicy('privacy')" style="cursor:pointer;color:var(--gold);white-space:nowrap" data-i18n="fPrivacy">นโยบายความเป็นส่วนตัว</a> ·
+    <a onclick="openPolicy('return')" style="cursor:pointer;color:var(--gold);white-space:nowrap" data-i18n="fReturn">การคืนสินค้า</a> ·
+    <a onclick="openPolicy('shipping')" style="cursor:pointer;color:var(--gold);white-space:nowrap" data-i18n="fShip">การจัดส่ง</a>
   </p>
-  <p style="margin-top:8px" data-i18n="fCredit">ผู้พัฒนาระบบ neos-css.com by Comtech Solution System Co., Ltd.</p>
+  <p style="margin-top:8px" data-i18n="fCredit">ผู้พัฒนาระบบ neos-css.com by Comtech&nbsp;Solution&nbsp;System&nbsp;Co.,&nbsp;Ltd.</p>
 </footer>
 
 <!-- ABOUT PANEL -->
@@ -2110,7 +2113,7 @@ const I18N={ en:{
   fAll:'All', fDogFood:'Dog food', fCatFood:'Cat food', fToy:'Toys', fGear:'Supplies', fLitter:'Cat litter', fTreat:'Treats', fGroom:'Grooming', fWish:'❤️ Favourites',
   searchPh:'🔍 Search products...', sortDefault:'Recommended', sortPriceAsc:'Price: low→high', sortPriceDesc:'Price: high→low', sortName:'Name A–Z',
   /* testimonials */ tLabel:'✦ Voices from customers', tTitle:'Reviews from real customers',
-  /* footer */ fTagline:'Good things for your furry little friends · cared for with heart, with Ung-Ing AI 🐾', fCredit:'Developed by neos-css.com · Comtech Solution System Co., Ltd.',
+  /* footer */ fTagline:'Good things for your furry little friends · cared for with heart, with Ung-Ing AI 🐾', fCredit:'Developed by neos-css.com · Comtech Solution System Co., Ltd.',
   /* about panel */ aboutTagline:'Complete pet supplies, delivered to your door',
   aboutText:'At Aungtao Shop we believe your dog or cat is family — so we hand-pick toys and supplies with love, only what we would give our own pets, bringing happiness to your furry little friend at home. 🐾',
   aboutF1t:'Quality, selected products', aboutF1s:'Genuine, safe, up to standard',
