@@ -1965,10 +1965,18 @@ async function openMyOrders(){
   let modal=document.getElementById('myorders-modal');
   if(!modal){ modal=document.createElement('div'); modal.id='myorders-modal'; modal.className='modal-overlay';
     modal.onclick=(e)=>{ if(e.target===modal) modal.classList.remove('show'); }; document.body.appendChild(modal); }
+  const ptsBanner=()=>{ if(!window.MEMBER) return ''; const L=window.LOY||{};
+    return `<div style="background:linear-gradient(135deg,#FFF3E4,#FDE7C9);border:1px solid #F2D3A6;border-radius:14px;padding:14px 16px;margin:14px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><div style="font-size:.72rem;color:#8a6d4b;font-weight:600">แต้มสะสมของฉัน${L.member_no?(' · '+L.member_no):''}</div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--primary);font-family:'Baloo Thai 2',sans-serif">🐾 ${Number(L.points||0).toLocaleString()} <span style="font-size:.8rem;font-weight:600">แต้ม</span></div>
+        <div style="font-size:.74rem;color:#8a6d4b">🎫 ตั๋วเกม ${L.credits||0} ใบ</div></div>
+      <button onclick="openRewards()" style="padding:9px 16px;border-radius:10px;background:var(--primary);color:#fff;font-weight:700;font-size:.8rem;border:none;cursor:pointer">🎁 ของรางวัล</button>
+    </div>`; };
   const shell=(body)=>`<div class="modal-box" style="max-width:480px"><button class="modal-close-btn" onclick="document.getElementById('myorders-modal').classList.remove('show')">✕</button>
-    <div style="padding:28px 26px"><div class="order-modal-title">📦 ออเดอร์ของฉัน</div>${body}</div></div>`;
+    <div style="padding:28px 26px"><div class="order-modal-title">📦 ออเดอร์ของฉัน</div>${ptsBanner()}${body}</div></div>`;
   modal.innerHTML=shell('<div style="text-align:center;color:var(--muted);padding:30px">กำลังโหลด…</div>');
   modal.classList.add('show');
+  if(window.MEMBER && typeof refreshLoyalty==='function'){ try{ await refreshLoyalty(); }catch(e){} }
   let live=null;
   if(window.MEMBER){ try{ const { data:{ session } }=await sbAuth.auth.getSession();
     const res=await fetch(WEB_API+'/web-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:session.access_token})});
@@ -1987,6 +1995,31 @@ async function openMyOrders(){
       ${_payable(o)?`<button style="margin-top:8px;padding:7px 16px;border-radius:8px;background:var(--gold);color:var(--dark);font-weight:700;font-size:.8rem;border:none;cursor:pointer" onclick="payAgain('${o.order_id}')">💳 ชำระเงิน / ดู QR</button>`:''}
     </div>`).join('') : '<div style="text-align:center;color:var(--muted);padding:30px">ยังไม่มีออเดอร์ค่ะ</div>'}`);
 }
+// 🎁 เมนูของรางวัล (โชว์แคตตาล็อกจาก DB · แลกจริงเปิดทีหลัง)
+async function openRewards(){
+  let modal=document.getElementById('rewards-modal');
+  if(!modal){ modal=document.createElement('div'); modal.id='rewards-modal'; modal.className='modal-overlay';
+    modal.onclick=(e)=>{ if(e.target===modal) modal.classList.remove('show'); }; document.body.appendChild(modal); }
+  const myPts=Number((window.LOY||{}).points||0);
+  const shell=(body)=>`<div class="modal-box" style="max-width:520px"><button class="modal-close-btn" onclick="document.getElementById('rewards-modal').classList.remove('show')">✕</button>
+    <div style="padding:26px 24px"><div class="order-modal-title">🎁 ของรางวัล</div>
+    <div class="order-modal-sub">สะสมแต้มแลกของรางวัลน่ารัก ๆ ให้น้อง 🐾${window.MEMBER?(' · คุณมี '+myPts.toLocaleString()+' แต้ม'):' · ล็อกอินเพื่อสะสมแต้ม'}</div>${body}</div></div>`;
+  modal.innerHTML=shell('<div style="text-align:center;color:var(--muted);padding:30px">กำลังโหลด…</div>');
+  modal.classList.add('show');
+  let rewards=[];
+  try{ const { data }=await sbAuth.from('rewards').select('*').eq('active',true).order('sort').order('id'); rewards=data||[]; }catch(e){}
+  if(!rewards.length){ modal.innerHTML=shell('<div style="text-align:center;color:var(--muted);padding:34px">เร็ว ๆ นี้มีของรางวัลมาให้แลกนะคะ 🎁</div>'); return; }
+  const cards=rewards.map(r=>{ const cost=Number(r.points_cost)||0, ok=window.MEMBER&&myPts>=cost;
+    return `<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px">
+      ${r.image_url?`<img src="${r.image_url}" style="width:64px;height:64px;object-fit:cover;border-radius:10px" alt="" onerror="this.style.display='none'">`:'<div style="width:64px;height:64px;border-radius:10px;background:#FDE7C9;display:flex;align-items:center;justify-content:center;font-size:28px">🎁</div>'}
+      <div style="flex:1;min-width:0"><div style="font-weight:700;color:var(--text)">${r.title||''}</div>${r.description?`<div style="font-size:.8rem;color:var(--muted);margin-top:2px">${r.description}</div>`:''}
+        <div style="font-size:.85rem;color:var(--primary);font-weight:800;margin-top:4px">${cost.toLocaleString()} แต้ม</div></div>
+      <span style="font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;${ok?'background:#e8f7ee;color:#1e8a4f':'background:#f3ece1;color:#a08a6f'}">${ok?'แลกได้':'สะสมอีก'}</span>
+    </div>`; }).join('');
+  modal.innerHTML=shell(cards+'<div style="font-size:.74rem;color:var(--muted);text-align:center;margin-top:8px">* แลกของรางวัล แจ้งร้านผ่านแชทอุ๋งอิ๋ง/LINE ได้เลยค่ะ (ระบบแลกอัตโนมัติเร็ว ๆ นี้)</div>');
+}
+window.openRewards=openRewards;
+
 // F3: เปิดหน้าชำระเงิน (QR + อัปโหลดสลิป) ของออเดอร์ที่ยังไม่จ่ายขึ้นมาใหม่
 function payAgain(orderId){
   const o=(window._myOrderMap||{})[orderId]; if(!o) return;
@@ -2737,7 +2770,7 @@ setTimeout(()=>{ applyProductView(); renderRecent(); renderForYou(); renderPromo
       <div class="agm-wallet">🐾 <span class="gm-pts-val">0</span> แต้ม · 🎫 <span class="gm-credits-val">0</span> ตั๋ว</div>
       <button class="agm-close" onclick="closeGames()" aria-label="ปิด">✕</button>
     </div>
-    <div class="agm-note">เล่นสนุกได้ทุกคน! 🎉 <b>เก็บแต้มจริงเข้าบัญชี</b> ต้องเป็น <b>สมาชิก</b> + มี <b>🎫 ตั๋วเกม</b> (รับตั๋วจากการสั่งซื้อครบยอด) — จบรอบกดปุ่ม "เก็บแต้ม" ค่ะ</div>
+    <div class="agm-note">เล่นสนุกได้ทุกคน! 🎉 <b>เก็บแต้มจริงเข้าบัญชี</b> ต้องเป็น <b>สมาชิก</b> + มี <b>🎫 ตั๋วเกม</b> (รับตั๋วจากการสั่งซื้อครบยอด) — จบรอบกดปุ่ม "เก็บแต้ม" ค่ะ · <a onclick="openRewards()" style="color:var(--primary);font-weight:700;cursor:pointer;text-decoration:underline">🎁 ดูของรางวัล</a></div>
     <div class="agm-hub" id="agmHub">
       <div class="agm-card" onclick="AGM.pick('tap')"><div class="ce">🐾</div><div class="cn">เคาะอุ้งเท้า</div><div class="cd">เคาะน้องให้ทัน · หลบระเบิด</div></div>
       <div class="agm-card" onclick="AGM.pick('catch')"><div class="ce">🍽️</div><div class="cn">เก็บอาหารให้น้อง</div><div class="cd">รับของตก · เลือกหมา/แมว</div></div>
