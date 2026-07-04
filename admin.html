@@ -766,6 +766,7 @@
         <div class="nav-group-items">
           <button class="nav-tab" data-tab="power" onclick="switchTab('power', this)">🔋 พลัง AI</button>
           <button class="nav-tab admin-only" data-tab="users" onclick="switchTab('users', this)">👥 ผู้ใช้</button>
+          <button class="nav-tab" data-tab="shipcfg" onclick="switchTab('shipcfg', this)">🚚 ตั้งค่าส่ง</button>
           <button class="nav-tab" onclick="window.open('guide.html','_blank')" title="เปิดคู่มือการใช้งานในแท็บใหม่">📖 คู่มือการใช้งาน</button>
         </div>
       </div>
@@ -1814,6 +1815,22 @@
   </div>
 </div>
 
+<!-- ===== PAGE: ตั้งค่าจัดส่ง (app_config) ===== -->
+<div class="page" id="page-shipcfg">
+  <div style="max-width:560px;margin:0 auto">
+    <div class="page-title">🚚 ตั้งค่าจัดส่ง</div>
+    <div class="page-sub">ตั้งค่าส่ง + ยอดขั้นต่ำที่ส่งฟรีเอง · เว็บ + อุ๋งอิ๋ง + ตะกร้า ใช้ค่านี้ทันที · ตั้งค่าส่ง = 0 คือส่งฟรีทุกออเดอร์</div>
+    <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:16px">
+      <label style="display:block;font-weight:600;margin-bottom:6px">ค่าส่ง (บาท ต่อออเดอร์)</label>
+      <input class="form-input" type="number" id="cfg-ship-fee" min="0" step="1" placeholder="เช่น 50" style="margin-bottom:16px">
+      <label style="display:block;font-weight:600;margin-bottom:6px">ส่งฟรีเมื่อซื้อครบ (บาท)</label>
+      <input class="form-input" type="number" id="cfg-free-th" min="0" step="1" placeholder="เช่น 600" style="margin-bottom:20px">
+      <button class="content-gen-btn" onclick="saveShipCfg()" style="width:auto;padding:11px 26px">💾 บันทึก</button>
+      <span id="shipcfg-msg" style="font-size:13px;margin-left:12px;display:none"></span>
+    </div>
+  </div>
+</div>
+
 <!-- ===== PAGE: LINE REPORTS (Phase 5) ===== -->
 <div class="page" id="page-linereport">
   <div style="max-width:900px;margin:0 auto">
@@ -2772,6 +2789,7 @@
     if (tab === 'content') { loadContentProducts(); loadVideoProducts(); renderScheduledList(); }
     if (tab === 'linereport') initLRSettings();
     if (tab === 'power') loadPower();
+    if (tab === 'shipcfg') loadShipCfgAdmin();
     if (tab === 'clip') loadClipMaker();
     if (tab === 'chat') loadChats();
     if (tab === 'finance') loadFinance();
@@ -6109,6 +6127,27 @@ Format ที่ต้องการ:
     keys.forEach(k => { const el = document.getElementById(`rep-${type}-sec-${k}`); if (el) o[k] = el.checked; });
     return o;
   }
+
+  async function loadShipCfgAdmin() {
+    try {
+      const { data } = await sb.from('app_config').select('ship_fee,free_threshold').eq('id', 1).maybeSingle();
+      document.getElementById('cfg-ship-fee').value = (data && data.ship_fee != null) ? data.ship_fee : 50;
+      document.getElementById('cfg-free-th').value  = (data && data.free_threshold != null) ? data.free_threshold : 600;
+    } catch (e) {}
+  }
+  async function saveShipCfg() {
+    const fee = Number(document.getElementById('cfg-ship-fee').value);
+    const th  = Number(document.getElementById('cfg-free-th').value);
+    const msg = document.getElementById('shipcfg-msg');
+    msg.style.display = 'inline';
+    if (!(fee >= 0) || !(th >= 0)) { msg.style.color = 'var(--red)'; msg.textContent = 'กรอกตัวเลข ≥ 0 นะคะ'; return; }
+    try {
+      const { error } = await sb.from('app_config').upsert({ id: 1, ship_fee: fee, free_threshold: th, updated_at: new Date().toISOString() });
+      if (error) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + error.message; }
+      else { msg.style.color = 'var(--green)'; msg.textContent = '✅ บันทึกแล้ว · เว็บ+อุ๋งอิ๋งใช้ค่าใหม่ทันที'; }
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+  }
+  window.saveShipCfg = saveShipCfg;
 
   async function saveReportConfig() {
     if (!requireEdit()) return;
