@@ -1297,14 +1297,49 @@
   <div class="page" id="page-loyalty">
     <div style="max-width:1000px;margin:0 auto;padding:28px 32px">
       <div class="page-title">🎁 แต้มสมาชิก</div>
-      <div class="page-sub">25 บาท = 1 แต้ม · 100 แต้ม = ส่วนลด ฿100</div>
+      <div class="page-sub" id="loyalty-rule-sub">ตั้งกฎแต้ม/ตั๋วเกมเองด้านล่าง · เว็บ+อุ๋งอิ๋ง ใช้ค่านี้ทันที</div>
       <div class="agent-banner">
         <div class="ab-icon">🎁</div>
         <div>
           <div class="ab-name">ฝ่ายขาย · แต้มสะสม</div>
-          <div class="ab-role">ลูกค้าสะสมแต้มจากยอดซื้อ · แลกเป็นส่วนลดได้</div>
+          <div class="ab-role">ลูกค้าสะสมแต้มจากยอดซื้อ · แลกเป็นส่วนลด · เล่นเกมด้วยตั๋วที่ได้จากยอดซื้อ</div>
         </div>
         <div class="ab-status ready">สถานะพร้อมใช้งาน 🟢</div>
+      </div>
+
+      <!-- ตั้งกฎแต้ม (loyalty_config) -->
+      <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:18px">
+        <div class="table-title" style="margin-bottom:14px">⚙️ ตั้งกฎแต้มสะสม & ตั๋วเกม</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">ได้ 1 แต้ม ทุกการซื้อ (บาท)</label><input class="form-input" type="number" id="loy-earn" min="1" step="1" placeholder="20"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">1 แต้ม = ส่วนลด (บาท)</label><input class="form-input" type="number" id="loy-redeem" min="0" step="0.1" placeholder="1"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">แลกขั้นต่ำ (แต้ม)</label><input class="form-input" type="number" id="loy-minredeem" min="0" step="1" placeholder="100"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">เพดานแต้ม/เกม 1 รอบ</label><input class="form-input" type="number" id="loy-gamecap" min="0" step="1" placeholder="30"></div>
+        </div>
+        <div style="margin-top:14px;font-weight:600;font-size:13px;color:var(--muted)">🎫 ตั๋วเกมตามยอดซื้อ (ต่อออเดอร์)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:8px">
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">ซื้อครบ (บาท) → ตั๋ว</label><div style="display:flex;gap:6px"><input class="form-input" type="number" id="loy-t1b" placeholder="300"><input class="form-input" type="number" id="loy-t1c" placeholder="1" style="max-width:70px"></div></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">ซื้อครบ (บาท) → ตั๋ว</label><div style="display:flex;gap:6px"><input class="form-input" type="number" id="loy-t2b" placeholder="500"><input class="form-input" type="number" id="loy-t2c" placeholder="2" style="max-width:70px"></div></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">ซื้อครบ (บาท) → ตั๋ว</label><div style="display:flex;gap:6px"><input class="form-input" type="number" id="loy-t3b" placeholder="1000"><input class="form-input" type="number" id="loy-t3c" placeholder="5" style="max-width:70px"></div></div>
+        </div>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px"><input type="checkbox" id="loy-enabled" style="width:16px;height:16px"> เปิดใช้ระบบแต้ม</label>
+          <button class="content-gen-btn" onclick="saveLoyaltyCfg()" style="width:auto;padding:11px 26px">💾 บันทึกกฎ</button>
+          <span id="loycfg-msg" style="font-size:13px;display:none"></span>
+        </div>
+      </div>
+
+      <!-- ปรับแต้มมือ -->
+      <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:16px">
+        <div class="table-title" style="margin-bottom:6px">✋ ปรับแต้มด้วยมือ</div>
+        <div class="page-sub" style="margin-bottom:14px">ใส่เลขสมาชิก (LM-####) หรืออีเมล + จำนวนแต้ม (ติดลบ = หัก) · บันทึกลงประวัติ (ledger)</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end">
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">เลขสมาชิก / อีเมล</label><input class="form-input" id="loy-adj-ref" placeholder="LM-0001 หรือ name@email.com"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">แต้ม (+/-)</label><input class="form-input" type="number" id="loy-adj-pts" placeholder="+50 หรือ -20"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">หมายเหตุ</label><input class="form-input" id="loy-adj-note" placeholder="เช่น ชดเชยลูกค้า"></div>
+          <div><button class="content-gen-btn" onclick="adjustLoyalty()" style="width:auto;padding:11px 22px">✋ ปรับแต้ม</button></div>
+        </div>
+        <span id="loyadj-msg" style="font-size:13px;display:none;margin-top:10px"></span>
       </div>
 
       <div class="table-card" style="margin-top:18px">
@@ -4666,6 +4701,7 @@
   async function loadLoyalty() {
     const wrap = document.getElementById('loyalty-table-wrap');
     const summary = document.getElementById('loyalty-summary');
+    loadLoyaltyCfg();   // เติมฟอร์มกฎแต้มจาก loyalty_config
     wrap.innerHTML = '<div class="loading-overlay"><span class="loading-spin"></span></div>';
     if (summary) summary.textContent = '—';
     try {
@@ -4702,6 +4738,61 @@
       wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>${escHtml(e.message)}</div>`;
     }
   }
+
+  // ===== ตั้งกฎแต้ม (loyalty_config) + ปรับมือ =====
+  async function loadLoyaltyCfg() {
+    try {
+      const { data } = await sb.from('loyalty_config').select('*').eq('id', 1).maybeSingle();
+      const g = (id, v) => { const el = document.getElementById(id); if (el && el.value === '') el.value = v; };
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      const d = data || {};
+      set('loy-earn', d.earn_baht_per_point != null ? d.earn_baht_per_point : 20);
+      set('loy-redeem', d.redeem_point_baht != null ? d.redeem_point_baht : 1);
+      set('loy-minredeem', d.min_redeem_points != null ? d.min_redeem_points : 100);
+      set('loy-gamecap', d.game_cap_points != null ? d.game_cap_points : 30);
+      set('loy-t1b', d.tier1_baht != null ? d.tier1_baht : 300); set('loy-t1c', d.tier1_credits != null ? d.tier1_credits : 1);
+      set('loy-t2b', d.tier2_baht != null ? d.tier2_baht : 500); set('loy-t2c', d.tier2_credits != null ? d.tier2_credits : 2);
+      set('loy-t3b', d.tier3_baht != null ? d.tier3_baht : 1000); set('loy-t3c', d.tier3_credits != null ? d.tier3_credits : 5);
+      const en = document.getElementById('loy-enabled'); if (en) en.checked = (d.enabled !== false);
+    } catch (e) {}
+  }
+  async function saveLoyaltyCfg() {
+    const num = (id, def) => { const v = Number(document.getElementById(id).value); return isFinite(v) ? v : def; };
+    const msg = document.getElementById('loycfg-msg'); msg.style.display = 'inline';
+    const row = {
+      id: 1, enabled: document.getElementById('loy-enabled').checked,
+      earn_baht_per_point: num('loy-earn', 20), redeem_point_baht: num('loy-redeem', 1), min_redeem_points: num('loy-minredeem', 100),
+      tier1_baht: num('loy-t1b', 300), tier1_credits: num('loy-t1c', 1),
+      tier2_baht: num('loy-t2b', 500), tier2_credits: num('loy-t2c', 2),
+      tier3_baht: num('loy-t3b', 1000), tier3_credits: num('loy-t3c', 5),
+      game_cap_points: num('loy-gamecap', 30), updated_at: new Date().toISOString(),
+    };
+    if (!(row.earn_baht_per_point >= 1)) { msg.style.color = 'var(--red)'; msg.textContent = 'อัตราแต้มต้อง ≥ 1 บาท'; return; }
+    try {
+      const { error } = await sb.from('loyalty_config').upsert(row);
+      if (error) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + error.message; }
+      else { msg.style.color = 'var(--green)'; msg.textContent = '✅ บันทึกแล้ว · เว็บ+อุ๋งอิ๋งใช้ค่าใหม่ทันที'; }
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+  }
+  window.saveLoyaltyCfg = saveLoyaltyCfg;
+  async function adjustLoyalty() {
+    const ref = (document.getElementById('loy-adj-ref').value || '').trim();
+    const pts = Math.floor(Number(document.getElementById('loy-adj-pts').value) || 0);
+    const note = (document.getElementById('loy-adj-note').value || '').trim();
+    const msg = document.getElementById('loyadj-msg'); msg.style.display = 'inline-block';
+    if (!ref) { msg.style.color = 'var(--red)'; msg.textContent = 'ใส่เลขสมาชิก/อีเมลก่อนนะคะ'; return; }
+    if (!pts) { msg.style.color = 'var(--red)'; msg.textContent = 'ใส่จำนวนแต้ม (+/-) ที่ไม่ใช่ 0'; return; }
+    const body = ref.includes('@') ? { email: ref, points: pts, note } : { member_no: ref, points: pts, note };
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/loyalty-adjust', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) }, body: JSON.stringify(body)
+      });
+      const j = await r.json();
+      if (j.ok) { msg.style.color = 'var(--green)'; msg.textContent = `✅ ${j.member_no || ref} → คงเหลือ ${j.points} แต้ม`; document.getElementById('loy-adj-pts').value = ''; document.getElementById('loy-adj-note').value = ''; if (typeof loadMembers === 'function') loadMembers(); }
+      else { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (j.error || 'ปรับไม่สำเร็จ'); }
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+  }
+  window.adjustLoyalty = adjustLoyalty;
 
   // ===== ทะเบียนสมาชิก (members table · /admin/members) =====
   let allMembers = [];
