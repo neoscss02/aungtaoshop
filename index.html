@@ -1981,7 +1981,7 @@ async function openMyOrders(){
   if(window.MEMBER){ try{ const { data:{ session } }=await sbAuth.auth.getSession();
     const res=await fetch(WEB_API+'/web-orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:session.access_token})});
     const j=await res.json(); if(j.ok) live=j.orders; }catch(e){} }
-  const rows = live!=null ? live.map(o=>({order_id:o.order_id,total:o.total_amount,items:o.items,status:o.status,tracking:o.tracking_number,carrier:o.carrier,at:o.created_at}))
+  const rows = live!=null ? live.map(o=>({order_id:o.order_id,total:o.total_amount,items:o.items,status:o.status,tracking:o.tracking_number,carrier:o.shipping_provider||o.carrier,at:o.created_at}))
                           : JSON.parse(localStorage.getItem('lt_myorders')||'[]');
   const sub = live!=null ? 'อัปเดตสถานะแบบเรียลไทม์ (สมาชิก)' : 'รายการที่สั่งจากอุปกรณ์นี้ · ล็อกอินเพื่อดูสถานะสด';
   window._myOrderMap={}; rows.forEach(o=>{ window._myOrderMap[o.order_id]={total:o.total,items:o.items||[]}; });
@@ -2614,22 +2614,10 @@ if(_openMyOrders){
       const ref=myReferralCode();
       // register this member's code as an owner row (best-effort; code is unique so dupes 409 harmlessly)
       if(window.MEMBER && typeof sbInsertAnon==='function') sbInsertAnon('referrals',{ code:ref, owner_id:'USER-'+window.MEMBER.id });
-      // Phase 4 — loyalty points + tier (1 point / ฿100 spent)
-      // sum the totals actually shown (live /web-orders for members, localStorage for guests)
-      let spent=0; cards.forEach(c=>{ const mm=c.textContent.match(/฿([\d,]+)/); if(mm) spent+=parseInt(mm[1].replace(/,/g,'')); });
-      if(!spent) spent=mine.reduce((s,o)=>s+(Number(o.total)||0),0);
-      const pts=Math.floor(spent/100);
-      const tier = spent>=5000?{n:en?'Platinum':'แพลทินัม',ic:'💎'}:spent>=2000?{n:en?'Gold':'ทอง',ic:'🥇'}:{n:en?'Silver':'เงิน',ic:'🥈'};
+      // 🗑️ ลบการ์ดแต้มเก่า (฿100=1 · ระดับ เงิน/ทอง) — ใช้แบนเนอร์แต้มจริงด้านบน (/points/me · 20฿=1) แทน · เหลือแค่ "ชวนเพื่อน"
       const extra=document.createElement('div'); extra.className='lt-extra';
       extra.style.cssText='margin-top:16px;border-top:1px solid var(--border);padding-top:14px';
-      extra.innerHTML=`<div style="background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><div style="font-size:.74rem;opacity:.85">${en?'My points':'แต้มสะสม'}</div><div style="font-family:'Charm','Sarabun',cursive;font-size:1.8rem;font-weight:700">${pts} <span style="font-size:.9rem">${en?'pts':'แต้ม'}</span></div></div>
-            <div style="text-align:right"><div style="font-size:.74rem;opacity:.85">${en?'Tier':'ระดับ'}</div><div style="font-size:1.05rem;font-weight:700">${tier.ic} ${tier.n}</div></div>
-          </div>
-          <div style="font-size:.72rem;opacity:.8;margin-top:6px">${en?'Earn 1 point per ฿100 spent':'ทุกการใช้จ่าย ฿100 = 1 แต้ม'}</div>
-        </div>
-        <div style="font-size:.84rem;font-weight:700;margin-bottom:6px">🎁 ${en?'Invite friends':'ชวนเพื่อน รับส่วนลด'}</div>
+      extra.innerHTML=`<div style="font-size:.84rem;font-weight:700;margin-bottom:6px">🎁 ${en?'Invite friends':'ชวนเพื่อน รับส่วนลด'}</div>
         <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px">${en?'Share your code — you both get a discount.':'แชร์โค้ดของคุณ ทั้งคุณและเพื่อนรับส่วนลด'}</div>
         <div style="display:flex;gap:8px;align-items:center">
           <code style="flex:1;background:#f9f0e8;padding:8px 12px;border-radius:8px;font-weight:700;color:var(--primary);letter-spacing:1px">${ref}</code>
