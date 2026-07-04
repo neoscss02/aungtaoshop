@@ -2009,16 +2009,36 @@ async function openRewards(){
   let rewards=[];
   try{ const { data }=await sbAuth.from('rewards').select('*').eq('active',true).order('sort').order('id'); rewards=data||[]; }catch(e){}
   if(!rewards.length){ modal.innerHTML=shell('<div style="text-align:center;color:var(--muted);padding:34px">เร็ว ๆ นี้มีของรางวัลมาให้แลกนะคะ 🎁</div>'); return; }
+  window.__REWARDS=rewards;
   const cards=rewards.map(r=>{ const cost=Number(r.points_cost)||0, ok=window.MEMBER&&myPts>=cost;
+    const action = ok
+      ? `<button onclick="redeemReward(${r.id},${cost})" style="font-size:.75rem;font-weight:800;padding:8px 15px;border-radius:20px;white-space:nowrap;border:none;background:var(--primary);color:#fff;cursor:pointer">🎁 แลกเลย</button>`
+      : `<span style="font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;background:#f3ece1;color:#a08a6f">${window.MEMBER?('อีก '+Math.max(0,cost-myPts).toLocaleString()+' แต้ม'):'ล็อกอินก่อน'}</span>`;
     return `<div style="display:flex;gap:12px;align-items:center;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px">
       ${r.image_url?`<img src="${r.image_url}" style="width:64px;height:64px;object-fit:cover;border-radius:10px" alt="" onerror="this.style.display='none'">`:'<div style="width:64px;height:64px;border-radius:10px;background:#FDE7C9;display:flex;align-items:center;justify-content:center;font-size:28px">🎁</div>'}
       <div style="flex:1;min-width:0"><div style="font-weight:700;color:var(--text)">${r.title||''}</div>${r.description?`<div style="font-size:.8rem;color:var(--muted);margin-top:2px">${r.description}</div>`:''}
         <div style="font-size:.85rem;color:var(--primary);font-weight:800;margin-top:4px">${cost.toLocaleString()} แต้ม</div></div>
-      <span style="font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:20px;white-space:nowrap;${ok?'background:#e8f7ee;color:#1e8a4f':'background:#f3ece1;color:#a08a6f'}">${ok?'แลกได้':'สะสมอีก'}</span>
+      ${action}
     </div>`; }).join('');
-  modal.innerHTML=shell(cards+'<div style="font-size:.74rem;color:var(--muted);text-align:center;margin-top:8px">* แลกของรางวัล แจ้งร้านผ่านแชทอุ๋งอิ๋ง/LINE ได้เลยค่ะ (ระบบแลกอัตโนมัติเร็ว ๆ นี้)</div>');
+  modal.innerHTML=shell(cards+'<div style="font-size:.74rem;color:var(--muted);text-align:center;margin-top:8px">* แลกของรางวัลแล้ว หักแต้มทันที · ทีมงานจะติดต่อจัดส่งของรางวัลให้นะคะ 🐾</div>');
 }
 window.openRewards=openRewards;
+
+// 🎁 แลกของรางวัลจริง → หักแต้ม + ออกคำขอ (worker /rewards/redeem) · ยืนยันก่อนแลก
+async function redeemReward(rewardId, cost){
+  if(!window.MEMBER){ alert('ล็อกอินก่อนแลกของรางวัลนะคะ 🐾'); return; }
+  const rw=(window.__REWARDS||[]).find(x=>Number(x.id)===Number(rewardId));
+  const title=(rw&&rw.title)||'ของรางวัล';
+  if(!confirm(`ยืนยันแลก "${title}"\nใช้ ${Number(cost).toLocaleString()} แต้ม?`)) return;
+  try{
+    const s=await sbAuth.auth.getSession(); const t=(s.data&&s.data.session&&s.data.session.access_token)||'';
+    const r=await fetch(WEB_API+'/rewards/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,reward_id:rewardId})});
+    const j=await r.json();
+    if(j&&j.ok){ if(typeof j.points==='number')window.LOY.points=j.points; try{await refreshLoyalty();}catch(e){} alert(j.message||'แลกสำเร็จค่ะ 🎉'); openRewards(); }
+    else { alert((j&&j.message)||'แลกไม่สำเร็จค่ะ ลองใหม่นะคะ 🙏'); }
+  }catch(e){ alert('เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะคะ 🙏'); }
+}
+window.redeemReward=redeemReward;
 
 // F3: เปิดหน้าชำระเงิน (QR + อัปโหลดสลิป) ของออเดอร์ที่ยังไม่จ่ายขึ้นมาใหม่
 function payAgain(orderId){
