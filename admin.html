@@ -1342,6 +1342,32 @@
         <span id="loyadj-msg" style="font-size:13px;display:none;margin-top:10px"></span>
       </div>
 
+      <!-- เมนูของรางวัล (owner กำหนดเอง · ข้อความ/รูป) -->
+      <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:16px">
+        <div class="table-title" style="margin-bottom:6px">🎁 เมนูของรางวัล</div>
+        <div class="page-sub" style="margin-bottom:14px">กำหนดรางวัลเอง · ใส่ <b>ข้อความ และ/หรือ รูป</b> · ตั้งแต้มที่ใช้แลก · โชว์บนเว็บให้ลูกค้าดู (แลกจริงเปิดทีหลัง)</div>
+        <input type="hidden" id="rw-id">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">ชื่อรางวัล</label><input class="form-input" id="rw-title" placeholder="เช่น ตุ๊กตาน้องหมา"></div>
+          <div><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">แต้มที่ใช้แลก</label><input class="form-input" type="number" id="rw-cost" min="0" placeholder="เช่น 300"></div>
+          <div style="grid-column:1/-1"><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">รายละเอียด (ข้อความ)</label><input class="form-input" id="rw-desc" placeholder="คำอธิบายรางวัล (ไม่ใส่ก็ได้)"></div>
+          <div style="grid-column:1/-1"><label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px">รูป (วางลิงก์ หรือ อัปโหลดไฟล์ · ไม่ใส่ก็ได้)</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="form-input" id="rw-img" placeholder="https://... หรือกดอัปโหลด →" style="flex:1;min-width:180px" oninput="rwPreview()">
+              <input type="file" id="rw-file" accept="image/*" onchange="uploadRewardImg(this)" style="font-size:12px">
+            </div>
+            <img id="rw-preview" alt="" style="display:none;max-height:64px;margin-top:8px;border-radius:8px;border:1px solid var(--line)">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px"><input type="checkbox" id="rw-active" checked style="width:16px;height:16px"> เปิดแสดงบนเว็บ</label>
+          <button class="content-gen-btn" onclick="saveReward()" style="width:auto;padding:11px 24px">💾 เพิ่ม/บันทึก</button>
+          <button onclick="resetRewardForm()" style="padding:11px 18px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--text);font-size:13px;cursor:pointer">＋ รายการใหม่</button>
+          <span id="rw-msg" style="font-size:13px;display:none"></span>
+        </div>
+        <div id="rw-list" style="margin-top:16px;display:grid;gap:10px"></div>
+      </div>
+
       <div class="table-card" style="margin-top:18px">
         <div class="table-header">
           <div class="table-title">🏆 ลูกค้าสะสมแต้มสูงสุด</div>
@@ -4702,6 +4728,7 @@
     const wrap = document.getElementById('loyalty-table-wrap');
     const summary = document.getElementById('loyalty-summary');
     loadLoyaltyCfg();   // เติมฟอร์มกฎแต้มจาก loyalty_config
+    loadRewards();      // เมนูของรางวัล
     wrap.innerHTML = '<div class="loading-overlay"><span class="loading-spin"></span></div>';
     if (summary) summary.textContent = '—';
     try {
@@ -4793,6 +4820,72 @@
     } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
   }
   window.adjustLoyalty = adjustLoyalty;
+
+  // ===== เมนูของรางวัล (rewards · owner กำหนดเอง) =====
+  let allRewards = [];
+  async function loadRewards() {
+    try { const { data } = await sb.from('rewards').select('*').order('sort').order('id'); allRewards = data || []; renderRewardsList(); }
+    catch (e) {}
+  }
+  function renderRewardsList() {
+    const wrap = document.getElementById('rw-list'); if (!wrap) return;
+    if (!allRewards.length) { wrap.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีรางวัล · เพิ่มด้านบนได้เลยค่ะ</div>'; return; }
+    wrap.innerHTML = allRewards.map(r => `<div style="display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--white)">
+      ${r.image_url ? `<img src="${escHtml(r.image_url)}" style="width:46px;height:46px;object-fit:cover;border-radius:8px" alt="">` : '<div style="width:46px;height:46px;border-radius:8px;background:#f4ede2;display:flex;align-items:center;justify-content:center;font-size:20px">🎁</div>'}
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${escHtml(r.title || '(ไม่มีชื่อ)')} ${r.active ? '' : '<span style="color:var(--muted);font-weight:400;font-size:12px">· ปิดอยู่</span>'}</div>
+        <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(r.description || '')}</div></div>
+      <div style="color:var(--gold);font-weight:800;white-space:nowrap">${Number(r.points_cost) || 0} แต้ม</div>
+      <button onclick="editReward(${r.id})" style="padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:var(--white);cursor:pointer;font-size:12px">✏️</button>
+      <button onclick="deleteReward(${r.id})" style="padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:var(--white);cursor:pointer;font-size:12px">🗑️</button>
+    </div>`).join('');
+  }
+  function rwPreview() { const img = document.getElementById('rw-preview'), url = (document.getElementById('rw-img').value || '').trim(); if (url) { img.src = url; img.style.display = 'block'; } else { img.style.display = 'none'; } }
+  function resetRewardForm() {
+    ['rw-id', 'rw-title', 'rw-cost', 'rw-desc', 'rw-img'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('rw-active').checked = true; rwPreview();
+    const m = document.getElementById('rw-msg'); if (m) m.style.display = 'none';
+  }
+  function editReward(id) {
+    const r = allRewards.find(x => x.id === id); if (!r) return;
+    document.getElementById('rw-id').value = r.id; document.getElementById('rw-title').value = r.title || '';
+    document.getElementById('rw-cost').value = r.points_cost || 0; document.getElementById('rw-desc').value = r.description || '';
+    document.getElementById('rw-img').value = r.image_url || ''; document.getElementById('rw-active').checked = !!r.active; rwPreview();
+    try { document.getElementById('rw-title').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+  }
+  async function saveReward() {
+    const msg = document.getElementById('rw-msg'); msg.style.display = 'inline';
+    const title = document.getElementById('rw-title').value.trim();
+    if (!title) { msg.style.color = 'var(--red)'; msg.textContent = 'ใส่ชื่อรางวัลก่อนนะคะ'; return; }
+    const row = { title, description: document.getElementById('rw-desc').value.trim(), image_url: document.getElementById('rw-img').value.trim(), points_cost: Number(document.getElementById('rw-cost').value) || 0, active: document.getElementById('rw-active').checked };
+    const id = document.getElementById('rw-id').value;
+    try {
+      let error;
+      if (id) ({ error } = await sb.from('rewards').update(row).eq('id', id));
+      else ({ error } = await sb.from('rewards').insert(row));
+      if (error) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + error.message; return; }
+      msg.style.color = 'var(--green)'; msg.textContent = '✅ บันทึกแล้ว'; resetRewardForm(); loadRewards();
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+  }
+  async function deleteReward(id) {
+    if (!confirm('ลบรางวัลนี้?')) return;
+    try { await sb.from('rewards').delete().eq('id', id); loadRewards(); } catch (e) { alert(e.message); }
+  }
+  async function uploadRewardImg(input) {
+    const f = input.files && input.files[0]; if (!f) return;
+    const msg = document.getElementById('rw-msg'); msg.style.display = 'inline'; msg.style.color = 'var(--muted)'; msg.textContent = '⏳ อัปโหลดรูป...';
+    try {
+      const ext = ((f.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '') || 'jpg');
+      const path = 'r' + Date.now() + '_' + Math.random().toString(16).slice(2, 8) + '.' + ext;
+      const { error } = await sb.storage.from('rewards').upload(path, f, { upsert: true, contentType: f.type });
+      if (error) { msg.style.color = 'var(--red)'; msg.textContent = '❌ อัปโหลดไม่ได้ (' + error.message + ') · วางลิงก์รูปแทนได้ค่ะ'; input.value = ''; return; }
+      const { data } = sb.storage.from('rewards').getPublicUrl(path);
+      document.getElementById('rw-img').value = (data && data.publicUrl) || ''; rwPreview();
+      msg.style.color = 'var(--green)'; msg.textContent = '✅ อัปโหลดรูปแล้ว';
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+    input.value = '';
+  }
+  window.loadRewards = loadRewards; window.rwPreview = rwPreview; window.resetRewardForm = resetRewardForm;
+  window.editReward = editReward; window.saveReward = saveReward; window.deleteReward = deleteReward; window.uploadRewardImg = uploadRewardImg;
 
   // ===== ทะเบียนสมาชิก (members table · /admin/members) =====
   let allMembers = [];
