@@ -960,7 +960,13 @@ function headerSearch(e){ if(e)e.preventDefault(); var h=document.getElementById
       <button onclick="applyCoupon()" style="padding:9px 16px;border-radius:10px;background:var(--gold);color:var(--dark);font-weight:700;font-size:.82rem">ใช้</button>
     </div>
     <div id="coupon-msg" style="font-size:.76rem;margin-bottom:8px;display:none"></div>
+    <div id="redeem-box" style="display:none;gap:8px;margin-bottom:10px">
+      <input id="redeem-input" type="number" min="0" placeholder="ใช้แต้ม" style="flex:1;padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-size:.82rem;font-family:inherit">
+      <button onclick="applyRedeem()" style="padding:9px 16px;border-radius:10px;background:var(--primary);color:#fff;font-weight:700;font-size:.82rem;border:none;cursor:pointer">🎁 แลก</button>
+    </div>
+    <div id="redeem-msg" style="font-size:.76rem;margin-bottom:8px;display:none"></div>
     <div id="cart-discount-row" class="cart-total-row" style="display:none;font-size:.86rem;color:var(--primary)"><span id="cart-discount-label">ส่วนลด</span><span id="cart-discount">-฿0</span></div>
+    <div id="cart-redeem-row" class="cart-total-row" style="display:none;font-size:.86rem;color:var(--primary)"><span>🎁 ใช้แต้มสะสม</span><span id="cart-redeem">-฿0</span></div>
     <div class="cart-total-row">
       <span>ยอดรวม</span>
       <span class="cart-total-price" id="cart-total">฿0</span>
@@ -1247,6 +1253,7 @@ let currentProduct = null;
 let WISHLIST = JSON.parse(localStorage.getItem('lt_wishlist')||'[]');
 let REVIEWS = {};      // product_id -> [{stars,text,...}]
 let COUPON = null, DISCOUNT = 0;
+let REDEEM_PTS = 0;   // 🎁 แต้มที่ลูกค้าเลือกแลกในตะกร้า (server คิดจริงตอนสร้างออเดอร์)
 // โปรซื้อครบลด (auto-apply) — ดึงครั้งเดียว แล้วเลือกอันที่ลดมากสุดอัตโนมัติเมื่อยอดถึง
 var AUTO_PROMOS = [];
 function promoDiscount(c, subtotal){
@@ -1519,13 +1526,24 @@ function updateCartUI() {
   if (COUPON && subtotal >= (COUPON.min_total||0)) {
     DISCOUNT = COUPON.discount_type==='percent' ? Math.round(subtotal*COUPON.value/100) : Math.min(COUPON.value, subtotal);
   }
-  const total = Math.max(0, subtotal - DISCOUNT);
+  // 🎁 แลกแต้ม (สมาชิก) — preview เท่านั้น · server คิดจริงตอนสร้างออเดอร์
+  let REDEEM_DISC = 0;
+  const _lcfg = window.LOY && window.LOY.config;
+  if (window.MEMBER && REDEEM_PTS > 0 && _lcfg) {
+    REDEEM_DISC = Math.min(Math.round(REDEEM_PTS * (_lcfg.redeem_point_baht || 1)), Math.max(0, subtotal - DISCOUNT));
+  }
+  const total = Math.max(0, subtotal - DISCOUNT - REDEEM_DISC);
   const count = cart.reduce((s, i) => s + i.qty, 0);
   const badge = document.getElementById('cart-badge');
   badge.textContent = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
   const dr=document.getElementById('cart-discount-row');
   if(dr){ if(DISCOUNT>0){ dr.style.display='flex'; document.getElementById('cart-discount').textContent='-฿'+DISCOUNT; const dl=document.getElementById('cart-discount-label'); if(dl) dl.textContent=(COUPON&&COUPON._auto)?('🎁 ซื้อครบ ฿'+COUPON.min_total+' ลด'):'ส่วนลด'; } else dr.style.display='none'; }
+  // 🎁 แลกแต้ม: โชว์ช่องเมื่อเป็นสมาชิก+มีแต้ม · แถวส่วนลดแต้ม
+  const rbx=document.getElementById('redeem-box'), rin=document.getElementById('redeem-input');
+  if(rbx){ const showR=!!(window.MEMBER && window.LOY && window.LOY.points>0); rbx.style.display=showR?'flex':'none'; if(showR&&rin&&document.activeElement!==rin) rin.placeholder='ใช้แต้ม (มี '+window.LOY.points+')'; if(!showR){ REDEEM_PTS=0; const rm=document.getElementById('redeem-msg'); if(rm)rm.style.display='none'; } }
+  const rr=document.getElementById('cart-redeem-row');
+  if(rr){ if(REDEEM_DISC>0){ rr.style.display='flex'; document.getElementById('cart-redeem').textContent='-฿'+REDEEM_DISC; } else rr.style.display='none'; }
   // โปรซื้อครบลด: กระตุ้น "ซื้ออีก ฿X รับส่วนลด!" หรือชมเมื่อได้แล้ว
   const ph=document.getElementById('promo-hint');
   if(ph){
@@ -1635,6 +1653,7 @@ async function submitOrder() {
         items: cart.map(i => ({ product_id: i.id, qty: i.qty })),
         name, phone, address, payMethod,
         coupon: (COUPON && COUPON.code) || '',
+        redeem_points: (window.MEMBER ? REDEEM_PTS : 0),
         client_ref: window.CHECKOUT_REF || '',
         member_token: memberToken,
         source: localStorage.getItem('lt_source') || LT_SOURCE,
@@ -1667,6 +1686,7 @@ async function submitOrder() {
     if(!cod){ showPromptPayQR(total); document.getElementById('slip-status').textContent = ''; }
     document.getElementById('confirm-modal').classList.add('show');
     cart = [];
+    REDEEM_PTS = 0;                                      // consumed on this order
     updateCartUI();
     window.CHECKOUT_REF = '';                            // consumed; next checkout makes a fresh ref
   } catch (e) {
@@ -1907,8 +1927,22 @@ function updateAuthUI(){
   document.getElementById('nav-myorders').style.display = u?'':'none';
   if(u) document.getElementById('nav-user-name').textContent = (u.email||'').split('@')[0];
 }
-sbAuth.auth.onAuthStateChange((_e,session)=>{ window.MEMBER = session?session.user:null; updateAuthUI(); });
-sbAuth.auth.getSession().then(({data:{session}})=>{ window.MEMBER = session?session.user:null; updateAuthUI(); });
+sbAuth.auth.onAuthStateChange((_e,session)=>{ window.MEMBER = session?session.user:null; updateAuthUI(); refreshLoyalty(); });
+sbAuth.auth.getSession().then(({data:{session}})=>{ window.MEMBER = session?session.user:null; updateAuthUI(); refreshLoyalty(); });
+
+// 🎁 Loyalty state (แต้ม/ตั๋วเกม/กฎ) — ดึงจาก worker /points/me · ใช้ทั้งเกมและตะกร้า(แลกแต้ม)
+window.LOY = { points:0, credits:0, config:null, member_no:null };
+async function refreshLoyalty(){
+  try{
+    let t='';
+    if(window.MEMBER){ const s=await sbAuth.auth.getSession(); t=(s.data&&s.data.session&&s.data.session.access_token)||''; }
+    const r=await fetch(WEB_API+'/points/me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t})});
+    const j=await r.json();
+    if(j&&j.ok){ window.LOY={ points:j.points||0, credits:j.game_credits||0, config:j.config||null, member_no:j.member_no||null }; }
+  }catch(e){}
+  if(typeof updateCartUI==='function') updateCartUI();
+  if(typeof gameWalletSync==='function') gameWalletSync();
+}
 
 // ===== My Orders (tracked on this device) =====
 const ORDER_STEPS=['PENDING','SLIP_RECEIVED','PAID','SHIPPED','DONE'];
@@ -1994,6 +2028,7 @@ async function uploadSlip(input){
       const j=await res.json();
       status.style.color = j.ok? '#1e8e4e' : 'var(--primary2)';
       status.textContent = (j.ok?'✅ ':'⚠️ ') + (j.message||'');
+      if(j.ok && typeof refreshLoyalty==='function') refreshLoyalty();   // อัปเดตแต้ม/ตั๋วหลังจ่ายเงิน
     }catch(e){ status.style.color='var(--primary2)'; status.textContent='⚠️ อัปโหลดไม่สำเร็จ ลองใหม่นะคะ'; }
   };
   reader.readAsDataURL(file);
@@ -2051,6 +2086,18 @@ async function submitReview(pid){
   }catch(e){ showToast('ส่งรีวิวไม่สำเร็จค่ะ'); }
 }
 
+function applyRedeem(){
+  const inp=document.getElementById('redeem-input'), msg=document.getElementById('redeem-msg');
+  const cfg=window.LOY&&window.LOY.config, bal=(window.LOY&&window.LOY.points)||0;
+  if(msg) msg.style.display='block';
+  if(!window.MEMBER){ if(msg){msg.style.color='var(--primary2)';msg.textContent='ล็อกอินก่อนแลกแต้มนะคะ';} REDEEM_PTS=0; updateCartUI(); return; }
+  let v=Math.floor(Number(inp&&inp.value)||0);
+  if(v<=0){ REDEEM_PTS=0; if(msg)msg.style.display='none'; updateCartUI(); return; }
+  const minR=(cfg&&cfg.min_redeem_points)||0, per=(cfg&&cfg.redeem_point_baht)||1;
+  if(v<minR){ if(msg){msg.style.color='var(--primary2)';msg.textContent='แลกขั้นต่ำ '+minR+' แต้มค่ะ';} REDEEM_PTS=0; updateCartUI(); return; }
+  if(v>bal){ v=bal; if(inp)inp.value=bal; }
+  REDEEM_PTS=v; if(msg){msg.style.color='#1e8a4f';msg.textContent='ใช้ '+v+' แต้ม = ลด ฿'+Math.round(v*per)+' ค่ะ';} updateCartUI();
+}
 async function applyCoupon(){
   const code=(document.getElementById('coupon-code').value||'').trim().toUpperCase(); const msg=document.getElementById('coupon-msg');
   msg.style.display='block';
@@ -2674,10 +2721,10 @@ setTimeout(()=>{ applyProductView(); renderRecent(); renderForYou(); renderPromo
   <div class="agm-box">
     <div class="agm-head">
       <div class="agm-title">🎮 เกมรับแต้ม</div>
-      <div class="agm-wallet">🐾 <span class="gm-pts-val">0</span> แต้ม</div>
+      <div class="agm-wallet">🐾 <span class="gm-pts-val">0</span> แต้ม · 🎫 <span class="gm-credits-val">0</span> ตั๋ว</div>
       <button class="agm-close" onclick="closeGames()" aria-label="ปิด">✕</button>
     </div>
-    <div class="agm-note">เล่นสนุกได้เลย! 🎉 <b>แต้มจริง</b> สะสมเมื่อเป็น <b>สมาชิก + มียอดซื้อ</b> — เร็ว ๆ นี้</div>
+    <div class="agm-note">เล่นสนุกได้ทุกคน! 🎉 <b>เก็บแต้มจริงเข้าบัญชี</b> ต้องเป็น <b>สมาชิก</b> + มี <b>🎫 ตั๋วเกม</b> (รับตั๋วจากการสั่งซื้อครบยอด) — จบรอบกดปุ่ม "เก็บแต้ม" ค่ะ</div>
     <div class="agm-hub" id="agmHub">
       <div class="agm-card" onclick="AGM.pick('tap')"><div class="ce">🐾</div><div class="cn">เคาะอุ้งเท้า</div><div class="cd">เคาะน้องให้ทัน · หลบระเบิด</div></div>
       <div class="agm-card" onclick="AGM.pick('catch')"><div class="ce">🍽️</div><div class="cn">เก็บอาหารให้น้อง</div><div class="cd">รับของตก · เลือกหมา/แมว</div></div>
@@ -2687,25 +2734,49 @@ setTimeout(()=>{ applyProductView(); renderRecent(); renderForYou(); renderPromo
     <div class="agm-stage" id="agmStage" style="display:none">
       <button class="agm-back" onclick="AGM.hub()">← เลือกเกมอื่น</button>
       <div id="agmHost"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button id="agmClaim" onclick="AGM.claim()" style="display:none;align-items:center;gap:6px;padding:11px 24px;border-radius:12px;background:var(--primary);color:#fff;font-weight:800;border:none;cursor:pointer;font-family:'Baloo Thai 2',sans-serif;font-size:.95rem">🎫 เก็บแต้มรอบนี้เข้าบัญชี</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  var PKEY='aungtao_play_points';
-  function gp(){ return parseInt(localStorage.getItem(PKEY)||'0',10)||0; }
-  function wallet(){ var v=gp(); Array.prototype.forEach.call(document.querySelectorAll('.gm-pts-val'),function(e){e.textContent=v;}); }
-  function add(n){ localStorage.setItem(PKEY, gp()+n); wallet(); }
+  var _round=0, _game='';
+  function LOYpts(){ return (window.LOY&&window.LOY.points)||0; }
+  function LOYcred(){ return (window.LOY&&window.LOY.credits)||0; }
+  function wallet(){
+    Array.prototype.forEach.call(document.querySelectorAll('.gm-pts-val'),function(e){e.textContent=LOYpts();});
+    Array.prototype.forEach.call(document.querySelectorAll('.gm-credits-val'),function(e){e.textContent=LOYcred();});
+    var rb=document.getElementById('agmClaim');
+    if(rb){ rb.style.display=_round>0?'inline-flex':'none'; rb.textContent='🎫 เก็บ '+_round+' แต้มรอบนี้เข้าบัญชี'; }
+  }
+  window.gameWalletSync=wallet;
+  function add(n){ _round += n; wallet(); }
+  async function tok(){ try{ var s=await sbAuth.auth.getSession(); return (s.data&&s.data.session&&s.data.session.access_token)||''; }catch(e){ return ''; } }
+  window.claimRound=async function(){
+    if(!window.MEMBER){ if(window.showToast)showToast('ล็อกอินเพื่อเก็บแต้มจริงนะคะ 🐾 (เล่นสนุกได้เลย)'); return; }
+    if(_round<=0){ if(window.showToast)showToast('เล่นให้ได้แต้มก่อนนะคะ 🎮'); return; }
+    var btn=document.getElementById('agmClaim'); if(btn)btn.disabled=true;
+    try{
+      var t=await tok();
+      var r=await fetch(WEB_API+'/points/play',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,game:_game,score:_round})});
+      var j=await r.json();
+      if(j&&j.ok){ window.LOY.points=j.points; window.LOY.credits=j.game_credits; _round=0; wallet(); if(window.showToast)showToast(j.message||'เก็บแต้มแล้วค่ะ 🎉'); }
+      else { if(j&&typeof j.game_credits==='number')window.LOY.credits=j.game_credits; wallet(); if(window.showToast)showToast((j&&j.message)||'เก็บแต้มไม่สำเร็จค่ะ'); }
+    }catch(e){ if(window.showToast)showToast('เชื่อมต่อไม่ได้ค่ะ ลองใหม่นะคะ'); }
+    finally{ if(btn)btn.disabled=false; }
+  };
   function rnd(n){ return Math.floor(Math.random()*n); }
   var modal=document.getElementById('agm'), hub=document.getElementById('agmHub'),
       stageWrap=document.getElementById('agmStage'), host=document.getElementById('agmHost'), cleanup=null;
   function stop(){ if(cleanup){ try{cleanup();}catch(e){} cleanup=null; } }
   function showHub(){ stop(); hub.style.display='grid'; stageWrap.style.display='none'; host.innerHTML=''; }
-  window.openGames=function(){ modal.style.display='flex'; showHub(); wallet(); document.body.style.overflow='hidden'; };
+  window.openGames=function(){ modal.style.display='flex'; showHub(); wallet(); if(typeof refreshLoyalty==='function')refreshLoyalty(); document.body.style.overflow='hidden'; };
   window.closeGames=function(){ stop(); modal.style.display='none'; document.body.style.overflow=''; };
   var GAMES={ tap:buildTap, catch:buildCatch, wheel:buildWheel, run:buildRun };
-  window.AGM={ pick:function(id){ stop(); hub.style.display='none'; stageWrap.style.display='block'; host.innerHTML=''; cleanup=GAMES[id](host,add); }, hub:showHub };
+  window.AGM={ pick:function(id){ stop(); _round=0; _game=id; hub.style.display='none'; stageWrap.style.display='block'; host.innerHTML=''; wallet(); cleanup=GAMES[id](host,add); }, hub:showHub, claim:window.claimRound };
   modal.addEventListener('click',function(e){ if(e.target===modal) closeGames(); });
 
   function buildTap(host,add){
