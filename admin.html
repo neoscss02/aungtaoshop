@@ -3764,10 +3764,26 @@
       loadPausedList();
     } catch (e) { showToast('❌ ' + (e.message || e)); }
   }
+  async function chatTakeover(key, pause) {
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/ai-pause', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) }, body: JSON.stringify({ line_user_id: key, paused: pause }) });
+      const j = await r.json();
+      if (j.ok) {
+        if (!window.__pausedSet) window.__pausedSet = new Set();
+        if (pause) window.__pausedSet.add(key); else window.__pausedSet.delete(key);
+        showToast(pause ? '🔇 หยุด AI ลูกค้าคนนี้แล้ว — คุยผ่าน LINE OA ได้เลยค่ะ' : '🤖 คืน AI ให้ลูกค้าคนนี้แล้ว');
+        if (typeof renderChatList === 'function') renderChatList();
+        loadPausedList();
+      } else showToast('❌ ' + (j.error || 'ทำไม่สำเร็จ'));
+    } catch (e) { showToast('❌ ' + (e.message || e)); }
+  }
+  window.chatTakeover = chatTakeover;
   async function loadPausedList() {
     try {
       const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/ai-pause-list', { headers: { 'Authorization': 'Bearer ' + (await adminToken()) } });
       const j = await r.json(); const list = (j && j.paused) || [];
+      window.__pausedSet = new Set(list);
+      if (typeof renderChatList === 'function' && document.getElementById('chat-list') && Object.keys(_chatGroups || {}).length) renderChatList();
       const c = document.getElementById('paused-count'); if (c) c.textContent = '(' + list.length + ')';
       const p = document.getElementById('paused-panel'); if (!p) return;
       if (!list.length) { p.style.display = 'none'; p.innerHTML = ''; return; }
@@ -3813,14 +3829,19 @@
       const preview = escHtml((last && last.message || '').slice(0, 70));
       const chIc = g.channel === 'fb' ? '📘' : '💬';
       const blk = _blocked.has(kindOf(g.channel) + ':' + g.key) ? ' <span style="font-size:10px;background:#fdecea;color:#c0392b;padding:1px 7px;border-radius:8px;font-weight:700">🚫 บล็อก</span>' : '';
+      const isLine = g.channel === 'line';
+      const paused = !!(window.__pausedSet && window.__pausedSet.has(g.key));
+      const pBadge = paused ? ' <span style="font-size:10px;background:#fff2d6;color:#a6700a;padding:1px 7px;border-radius:8px;font-weight:700">🙋 แอดมินคุยเอง</span>' : '';
+      const tkBtn = isLine ? `<button onclick="event.stopPropagation();chatTakeover('${g.key}',${paused ? 'false' : 'true'})" style="margin-top:6px;font-size:11px;padding:5px 11px;border:1px solid ${paused ? '#1e8a4f' : '#e0a050'};border-radius:8px;background:white;color:${paused ? '#1e8a4f' : '#c47a10'};cursor:pointer;font-weight:700;white-space:nowrap">${paused ? '🤖 คืน AI' : '🔇 คุยเอง'}</button>` : '';
       return `<div onclick="openChatThread('${g.key}')" style="background:white;border-radius:14px;padding:15px 18px;box-shadow:0 2px 10px rgba(201,168,124,.1);margin-bottom:12px;cursor:pointer;display:flex;justify-content:space-between;gap:12px;align-items:center">
         <div style="min-width:0;flex:1">
-          <div style="font-weight:800;color:var(--text);font-size:14px;margin-bottom:3px">${chIc} ${escHtml(chatLabel(g, g.key))}${blk}</div>
+          <div style="font-weight:800;color:var(--text);font-size:14px;margin-bottom:3px">${chIc} ${escHtml(chatLabel(g, g.key))}${blk}${pBadge}</div>
           <div style="font-size:12px;color:var(--text-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${who}${preview}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:11px;color:var(--text-s)">${chatFmt(last && last.created_at)}</div>
           <div style="font-size:11px;color:#c9a87c;font-weight:700;margin-top:2px">${g.messages.length} ข้อความ</div>
+          ${tkBtn}
         </div>
       </div>`;
     }).join('');
