@@ -1908,6 +1908,35 @@
       <button class="content-gen-btn" onclick="saveShipCfg()" style="width:auto;padding:11px 26px">💾 บันทึก</button>
       <span id="shipcfg-msg" style="font-size:13px;margin-left:12px;display:none"></span>
     </div>
+
+    <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:22px;margin-top:16px">
+      <div class="table-title" style="margin-bottom:6px">🚚 AI Logistic (แจ้งส่ง + ติดตามพัสดุ)</div>
+      <div class="page-sub" style="margin-bottom:14px">พอกด "จัดส่งแล้ว" + ใส่เลขพัสดุ → แจ้งลูกค้าทาง LINE พร้อมลิงก์ติดตามอัตโนมัติ + เตือนโกลด์เมื่อมีของค้างส่ง</div>
+      <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px">ขนส่งเริ่มต้น</label>
+      <select class="form-input" id="cfg-carrier" style="margin-bottom:14px">
+        <option value="Flash">Flash Express</option>
+        <option value="Kerry">Kerry Express</option>
+        <option value="J&T">J&amp;T Express</option>
+        <option value="ไปรษณีย์ไทย">ไปรษณีย์ไทย</option>
+        <option value="Ninja">Ninja Van</option>
+        <option value="SCG">SCG Express</option>
+      </select>
+      <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px">เตือนโกลด์เมื่อชำระแล้วเกินกี่วันยังไม่ส่ง</label>
+      <input class="form-input" type="number" id="cfg-stuck-days" min="1" step="1" placeholder="2" style="margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;margin-bottom:18px"><input type="checkbox" id="cfg-logi-notify" style="width:16px;height:16px"> เปิดแจ้งลูกค้าอัตโนมัติทาง LINE</label>
+      <div style="border-top:1px dashed var(--line);padding-top:14px;margin-bottom:4px"><b style="font-size:13px">🔌 เฟส 2 — อัปเดตสถานะอัตโนมัติ (เสียบทีหลัง)</b></div>
+      <div class="page-sub" style="margin-bottom:12px">ใส่ API ผู้ให้บริการรวมพัสดุ → ระบบดึงสถานะจริง + แจ้ง "ถึงแล้ว" อัตโนมัติ (เว้นว่าง = ยังไม่เปิด · เฟส 1 ทำงานได้ปกติ)</div>
+      <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px">ผู้ให้บริการ (Aggregator)</label>
+      <select class="form-input" id="cfg-carrier-api" style="margin-bottom:14px">
+        <option value="">— ปิด (ยังไม่ใช้) —</option>
+        <option value="trackingmore">TrackingMore</option>
+        <option value="aftership">AfterShip</option>
+      </select>
+      <label style="display:block;font-weight:600;margin-bottom:6px;font-size:13px">API Key</label>
+      <input class="form-input" type="text" id="cfg-carrier-key" placeholder="วาง API key ที่นี่ (เว้นว่าง = ยังไม่เปิดเฟส 2)" style="margin-bottom:20px">
+      <button class="content-gen-btn" onclick="saveLogiCfg()" style="width:auto;padding:11px 26px">💾 บันทึก Logistic</button>
+      <span id="logicfg-msg" style="font-size:13px;margin-left:12px;display:none"></span>
+    </div>
   </div>
 </div>
 
@@ -6392,11 +6421,35 @@ Format ที่ต้องการ:
 
   async function loadShipCfgAdmin() {
     try {
-      const { data } = await sb.from('app_config').select('ship_fee,free_threshold').eq('id', 1).maybeSingle();
+      const { data } = await sb.from('app_config').select('ship_fee,free_threshold,default_carrier,ship_stuck_days,logi_notify_enabled,carrier_api_provider,carrier_api_key').eq('id', 1).maybeSingle();
       document.getElementById('cfg-ship-fee').value = (data && data.ship_fee != null) ? data.ship_fee : 50;
       document.getElementById('cfg-free-th').value  = (data && data.free_threshold != null) ? data.free_threshold : 600;
+      const setV = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+      setV('cfg-carrier',      (data && data.default_carrier) || 'Flash');
+      setV('cfg-stuck-days',   (data && data.ship_stuck_days != null) ? data.ship_stuck_days : 2);
+      setV('cfg-carrier-api',  (data && data.carrier_api_provider) || '');
+      setV('cfg-carrier-key',  (data && data.carrier_api_key) || '');
+      const cn = document.getElementById('cfg-logi-notify'); if (cn) cn.checked = !data || data.logi_notify_enabled !== false;
     } catch (e) {}
   }
+  async function saveLogiCfg() {
+    const msg = document.getElementById('logicfg-msg'); msg.style.display = 'inline';
+    const row = {
+      id: 1,
+      default_carrier: document.getElementById('cfg-carrier').value,
+      ship_stuck_days: Number(document.getElementById('cfg-stuck-days').value) || 2,
+      logi_notify_enabled: document.getElementById('cfg-logi-notify').checked,
+      carrier_api_provider: document.getElementById('cfg-carrier-api').value,
+      carrier_api_key: (document.getElementById('cfg-carrier-key').value || '').trim(),
+      updated_at: new Date().toISOString(),
+    };
+    try {
+      const { error } = await sb.from('app_config').upsert(row);
+      if (error) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + error.message; }
+      else { msg.style.color = 'var(--green)'; msg.textContent = '✅ บันทึกแล้ว' + (row.carrier_api_provider && row.carrier_api_key ? ' · เฟส 2 เปิด (ดึงสถานะจริงอัตโนมัติ)' : ' · เฟส 1 พร้อมใช้'); }
+    } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
+  }
+  window.saveLogiCfg = saveLogiCfg;
   async function saveShipCfg() {
     const fee = Number(document.getElementById('cfg-ship-fee').value);
     const th  = Number(document.getElementById('cfg-free-th').value);
@@ -6544,6 +6597,18 @@ Format ที่ต้องการ:
           body: JSON.stringify({ order_id: currentModalOrderId })
         });
       } catch (e) { /* คืนสต็อกพลาดไม่บล็อกการอัปเดตสถานะ */ }
+    }
+
+    // 🚚 AI Logistic: แจ้งลูกค้าทาง LINE + ลิงก์ติดตาม เมื่อ SHIPPED/DELIVERED
+    if (['SHIPPED', 'DELIVERED'].includes(newStatus)) {
+      try {
+        const rs = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/order-ship', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) },
+          body: JSON.stringify({ order_id: currentModalOrderId, status: newStatus })
+        });
+        const rj = await rs.json().catch(() => ({}));
+        if (rj && rj.notified) showToast('🚚 แจ้งลูกค้าทาง LINE แล้ว' + (rj.tracking_link ? ' + ลิงก์ติดตาม' : ''));
+      } catch (e) { /* แจ้งพลาดไม่บล็อก */ }
     }
 
     // Update local data
