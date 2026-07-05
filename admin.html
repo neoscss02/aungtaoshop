@@ -762,11 +762,18 @@
       </div>
 
       <div class="nav-group">
+        <button class="nav-group-head" onclick="toggleGroup(this)"><span class="ngh-ic">🚚</span><span class="ngh-tx">ขนส่ง</span><span class="ngh-arr">▾</span></button>
+        <div class="nav-group-items">
+          <button class="nav-tab" data-tab="logistics" onclick="switchTab('logistics', this)">🚚 การจัดส่ง</button>
+          <button class="nav-tab" data-tab="shipcfg" onclick="switchTab('shipcfg', this)">⚙️ ตั้งค่าส่ง</button>
+        </div>
+      </div>
+
+      <div class="nav-group">
         <button class="nav-group-head" onclick="toggleGroup(this)"><span class="ngh-ic">⚙️</span><span class="ngh-tx">ตั้งค่า</span><span class="ngh-arr">▾</span></button>
         <div class="nav-group-items">
           <button class="nav-tab" data-tab="power" onclick="switchTab('power', this)">🔋 พลัง AI</button>
           <button class="nav-tab admin-only" data-tab="users" onclick="switchTab('users', this)">👥 ผู้ใช้</button>
-          <button class="nav-tab" data-tab="shipcfg" onclick="switchTab('shipcfg', this)">🚚 ตั้งค่าส่ง</button>
           <button class="nav-tab" onclick="window.open('guide.html','_blank')" title="เปิดคู่มือการใช้งานในแท็บใหม่">📖 คู่มือการใช้งาน</button>
         </div>
       </div>
@@ -1896,6 +1903,42 @@
 </div>
 
 <!-- ===== PAGE: ตั้งค่าจัดส่ง (app_config) ===== -->
+<div class="page" id="page-logistics">
+  <div style="max-width:1000px;margin:0 auto;padding:28px 32px">
+    <div class="page-title">🚚 การจัดส่ง (AI Logistics)</div>
+    <div class="page-sub">ภาพรวมการจัดส่ง + ปรึกษาผู้เชี่ยวชาญขนส่ง (สมองที่ 4) · กดจัดส่งจริง + ใส่เลขพัสดุ ทำที่แท็บ 🛍️ ออเดอร์</div>
+    <div class="agent-banner">
+      <div class="ab-icon">🚚</div>
+      <div>
+        <div class="ab-name">AI Logistics · ผู้เชี่ยวชาญขนส่ง</div>
+        <div class="ab-role">ติดตามออเดอร์ค้างส่ง/กำลังส่ง/ถึงแล้ว · แจ้งลูกค้าอัตโนมัติ + ลิงก์ติดตามเมื่อจัดส่ง</div>
+      </div>
+      <div class="ab-status ready">สถานะพร้อมใช้งาน 🟢</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:18px">
+      <div class="kpi-card"><div class="kpi-label">รอจัดส่ง (ชำระแล้ว)</div><div class="kpi-value" id="logi-topay">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">กำลังจัดส่ง</div><div class="kpi-value" id="logi-shipped">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">ส่งถึงแล้ววันนี้</div><div class="kpi-value" id="logi-delivered">—</div></div>
+    </div>
+
+    <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;padding:20px;margin-top:18px">
+      <div class="table-title" style="margin-bottom:10px">💬 ปรึกษา AI Logistics (สมองที่ 4)</div>
+      <textarea id="logi-q" class="form-input" rows="2" placeholder="เช่น ออเดอร์ไหนค้างส่งบ้าง / สรุปการจัดส่งวันนี้ / ควรเลือกขนส่งเจ้าไหน" style="width:100%;margin-bottom:10px"></textarea>
+      <button class="content-gen-btn" onclick="askLogistics()" style="width:auto;padding:10px 24px">🚚 ถาม AI Logistics</button>
+      <div id="logi-answer" style="margin-top:14px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--text)"></div>
+    </div>
+
+    <div class="table-card" style="margin-top:18px">
+      <div class="table-header">
+        <div class="table-title">📦 ออเดอร์รอจัดส่ง (ชำระแล้วยังไม่ส่ง)</div>
+        <div class="kpi-sub" id="logi-toship-sub">—</div>
+      </div>
+      <div id="logi-toship-wrap"><div class="loading-overlay"><span class="loading-spin"></span></div></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-shipcfg">
   <div style="max-width:560px;margin:0 auto">
     <div class="page-title">🚚 ตั้งค่าจัดส่ง</div>
@@ -2912,6 +2955,7 @@
     if (tab === 'linereport') initLRSettings();
     if (tab === 'power') loadPower();
     if (tab === 'shipcfg') loadShipCfgAdmin();
+    if (tab === 'logistics') loadLogistics();
     if (tab === 'clip') loadClipMaker();
     if (tab === 'chat') loadChats();
     if (tab === 'finance') loadFinance();
@@ -6509,6 +6553,42 @@ Format ที่ต้องการ:
     } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + (e.message || e); }
   }
   window.saveLogiCfg = saveLogiCfg;
+  // ===== 🚚 หน้าการจัดส่ง (Logistics) =====
+  async function loadLogistics() {
+    const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const wrap = document.getElementById('logi-toship-wrap');
+    try {
+      const n = new Date(); const dayStart = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())).toISOString();
+      const [pay, ship, del] = await Promise.all([
+        sb.from('orders').select('order_id,created_at,shipping_address').eq('status', 'PAID').order('created_at', { ascending: true }).limit(100),
+        sb.from('orders').select('order_id').eq('status', 'SHIPPED'),
+        sb.from('orders').select('order_id').eq('status', 'DELIVERED').gte('delivered_at', dayStart),
+      ]);
+      const payRows = pay.data || [];
+      setTxt('logi-topay', payRows.length); setTxt('logi-shipped', (ship.data || []).length); setTxt('logi-delivered', (del.data || []).length);
+      setTxt('logi-toship-sub', payRows.length + ' ออเดอร์');
+      if (!payRows.length) { wrap.innerHTML = '<div class="empty-state"><div class="icon">✅</div>ไม่มีออเดอร์รอจัดส่ง เยี่ยมเลยค่ะ</div>'; return; }
+      const body = payRows.map(o => {
+        const d = o.created_at ? new Date(o.created_at) : null;
+        const days = d ? Math.floor((Date.now() - d.getTime()) / 86400000) : 0;
+        const nm = ((o.shipping_address || '').split('|')[0] || '-').trim();
+        return `<tr><td><b>${escHtml(o.order_id)}</b></td><td>${escHtml(nm)}</td><td style="text-align:center">${d ? d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' }) : '-'}</td><td style="text-align:center">${days >= 2 ? `<span style="color:var(--red);font-weight:700">${days} วัน ⏰</span>` : days + ' วัน'}</td></tr>`;
+      }).join('');
+      wrap.innerHTML = `<table><thead><tr><th>ออเดอร์</th><th>ลูกค้า</th><th style="text-align:center">วันที่สั่ง</th><th style="text-align:center">รอมาแล้ว</th></tr></thead><tbody>${body}</tbody></table>`;
+    } catch (e) { if (wrap) wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>${escHtml(e.message)}</div>`; }
+  }
+  async function askLogistics() {
+    const q = (document.getElementById('logi-q').value || '').trim();
+    const out = document.getElementById('logi-answer');
+    if (!q) { out.textContent = 'พิมพ์คำถามก่อนนะคะ'; return; }
+    out.textContent = '🚚 AI Logistics กำลังคิด...';
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/agent/logistic', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) }, body: JSON.stringify({ question: q }) });
+      const j = await r.json();
+      out.textContent = j.answer || ('❌ ' + (j.error || 'ตอบไม่ได้ค่ะ'));
+    } catch (e) { out.textContent = '❌ ' + (e.message || e); }
+  }
+  window.loadLogistics = loadLogistics; window.askLogistics = askLogistics;
   async function saveShipCfg() {
     const fee = Number(document.getElementById('cfg-ship-fee').value);
     const th  = Number(document.getElementById('cfg-free-th').value);
