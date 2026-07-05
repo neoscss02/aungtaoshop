@@ -1958,8 +1958,9 @@ async function refreshLoyalty(){
 }
 
 // ===== My Orders (tracked on this device) =====
-const ORDER_STEPS=['PENDING','SLIP_RECEIVED','PAID','SHIPPED','DONE'];
-const ORDER_TH={PENDING:'รอชำระ',SLIP_RECEIVED:'ตรวจสลิป',PAID:'ชำระแล้ว',SHIPPED:'จัดส่งแล้ว',DONE:'สำเร็จ',CANCELLED:'ยกเลิก'};
+const ORDER_STEPS=['PENDING','SLIP_RECEIVED','PAID','SHIPPED','DELIVERED','DONE'];
+const ORDER_TH={PENDING:'รอชำระ',SLIP_RECEIVED:'ตรวจสลิป',PAID:'ชำระแล้ว',SHIPPED:'จัดส่งแล้ว',DELIVERED:'ส่งถึงแล้ว',DONE:'สำเร็จ',CANCELLED:'ยกเลิก'};
+function webTrackingLink(carrier,no){ if(!no) return ''; const map={flash:'https://www.flashexpress.com/fle/tracking?se={NO}',kerry:'https://th.kerryexpress.com/th/track/?track={NO}',jt:'https://www.jtexpress.co.th/index/query/gzquery.html?bills={NO}',thaipost:'https://track.thailandpost.co.th/?trackNumber={NO}','ไปรษณีย์':'https://track.thailandpost.co.th/?trackNumber={NO}',ninja:'https://www.ninjavan.co/th-th/tracking?id={NO}',scg:'https://www.scgexpress.co.th/tracking?number={NO}'}; const p=String(carrier||'').toLowerCase().replace(/express|\s|&|\./g,''); for(const k in map){ if(p.includes(k)) return map[k].replace('{NO}',encodeURIComponent(no)); } return ''; }
 function orderTrack(status){ const i=ORDER_STEPS.indexOf(status); return `<div style="display:flex;gap:3px;margin-top:8px">${ORDER_STEPS.map((s,idx)=>`<div style="flex:1;height:5px;border-radius:3px;background:${i>=0&&idx<=i?'var(--primary)':'#f0e4d6'}"></div>`).join('')}</div><div style="font-size:.72rem;color:var(--primary);margin-top:4px;font-weight:600">${ORDER_TH[status]||status}</div>`; }
 async function openMyOrders(){
   let modal=document.getElementById('myorders-modal');
@@ -1991,7 +1992,7 @@ async function openMyOrders(){
       <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--primary)"><span>${o.order_id}</span><span>฿${o.total}</span></div>
       <div style="font-size:.8rem;color:var(--muted);margin-top:4px">${(o.items||[]).map(i=>i.name+' ×'+i.qty).join(', ')}</div>
       ${o.status?orderTrack(o.status):''}
-      ${o.tracking?`<div style="font-size:.74rem;margin-top:5px">🚚 ${o.carrier||''} <b>${o.tracking}</b></div>`:''}
+      ${o.tracking?`<div style="font-size:.74rem;margin-top:5px">🚚 ${o.carrier||''} <b>${o.tracking}</b>${(function(){var l=webTrackingLink(o.carrier,o.tracking);return l?` · <a href="${l}" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">ติดตามพัสดุ ↗</a>`:'';})()}</div>`:''}
       ${_payable(o)?`<button style="margin-top:8px;padding:7px 16px;border-radius:8px;background:var(--gold);color:var(--dark);font-weight:700;font-size:.8rem;border:none;cursor:pointer" onclick="payAgain('${o.order_id}')">💳 ชำระเงิน / ดู QR</button>`:''}
     </div>`).join('') : '<div style="text-align:center;color:var(--muted);padding:30px">ยังไม่มีออเดอร์ค่ะ</div>'}`);
 }
