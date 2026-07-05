@@ -2376,6 +2376,19 @@
       <div id="blocked-panel" style="display:none;margin-top:12px;border-top:1px dashed var(--gold-l);padding-top:12px"></div>
     </div>
 
+    <!-- 🙋 Human Takeover — แอดมินคุยเอง (หยุด AI เฉพาะลูกค้า) -->
+    <div style="background:white;border-radius:16px;padding:14px 22px;box-shadow:0 2px 12px rgba(201,168,124,0.12);margin-bottom:20px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:700;color:var(--text)">🙋 แอดมินคุยเอง (หยุด AI ลูกค้า LINE)</span>
+        <input id="takeover-uid" class="content-select" placeholder="วาง LINE id ลูกค้า (Uxxxxxxxx...)" style="flex:1;min-width:200px;font-size:13px">
+        <button class="content-action-btn" onclick="aiPause(true)" style="font-size:13px;padding:8px 16px">🔇 หยุด AI</button>
+        <button class="content-action-btn" onclick="aiPause(false)" style="font-size:13px;padding:8px 16px">🤖 คืน AI</button>
+        <button class="content-action-btn" onclick="loadPausedList()" style="font-size:13px;padding:8px 16px">📋 กำลังหยุด <span id="paused-count">(0)</span></button>
+      </div>
+      <div class="page-sub" style="margin-top:8px;font-size:12px">กด "หยุด AI" → อุ๋งอิ๋งเงียบกับลูกค้าคนนั้น (คุยผ่าน LINE OA ได้ไม่ชน) · คืนอัตโนมัติใน 2 ชม. หรือกด "คืน AI" · เอา LINE id จากข้อความแจ้งเตือน "ลูกค้าขอคุยกับแอดมิน"</div>
+      <div id="paused-panel" style="display:none;margin-top:12px;border-top:1px dashed var(--gold-l);padding-top:12px"></div>
+    </div>
+
     <div id="chat-list"><div style="text-align:center;color:var(--text-s);padding:30px">กำลังโหลด...</div></div>
   </div>
 </div>
@@ -3739,6 +3752,30 @@
     if (!ip) { showToast('กรอก IP ก่อนนะคะ'); return; }
     await toggleBlock('ip', ip, true); el.value = '';
   }
+  // 🙋 Human Takeover — หยุด/คืน AI เฉพาะลูกค้า LINE
+  async function aiPause(paused) {
+    const uid = (document.getElementById('takeover-uid').value || '').trim();
+    if (!uid) { showToast('วาง LINE id ลูกค้าก่อนนะคะ'); return; }
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/ai-pause', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) }, body: JSON.stringify({ line_user_id: uid, paused: paused }) });
+      const j = await r.json();
+      if (j.ok) showToast(paused ? '🔇 หยุด AI ลูกค้าคนนี้แล้ว (2 ชม.)' : '🤖 คืน AI ให้ลูกค้าคนนี้แล้ว');
+      else showToast('❌ ' + (j.error || 'ทำไม่สำเร็จ'));
+      loadPausedList();
+    } catch (e) { showToast('❌ ' + (e.message || e)); }
+  }
+  async function loadPausedList() {
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/admin/ai-pause-list', { headers: { 'Authorization': 'Bearer ' + (await adminToken()) } });
+      const j = await r.json(); const list = (j && j.paused) || [];
+      const c = document.getElementById('paused-count'); if (c) c.textContent = '(' + list.length + ')';
+      const p = document.getElementById('paused-panel'); if (!p) return;
+      if (!list.length) { p.style.display = 'none'; p.innerHTML = ''; return; }
+      p.style.display = 'block';
+      p.innerHTML = list.map(uid => `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px"><span style="font-family:monospace;color:var(--text-s);word-break:break-all">${escHtml(uid)}</span><button class="content-action-btn" onclick="document.getElementById('takeover-uid').value='${escHtml(uid)}';aiPause(false)" style="font-size:12px;padding:5px 12px;white-space:nowrap">🤖 คืน AI</button></div>`).join('');
+    } catch (e) {}
+  }
+  window.aiPause = aiPause; window.loadPausedList = loadPausedList;
   function chatFmt(t, withYear) {
     try { return new Date(t).toLocaleString('th-TH', withYear ? { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' } : { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); }
     catch { return ''; }
@@ -3746,6 +3783,7 @@
   function chatLabel(g, key) { return g && g.name ? g.name : ('ลูกค้า ' + (key || '').slice(0, 8) + '…'); }
   async function loadChats() {
     const wrap = document.getElementById('chat-list');
+    try { loadPausedList(); } catch (e) {}
     wrap.innerHTML = '<div style="text-align:center;color:var(--text-s);padding:30px">กำลังโหลด...</div>';
     let data = [];
     try { const r = await sb.from('chat_logs').select('*').order('id', { ascending: true }).limit(5000); data = r.data || []; }
