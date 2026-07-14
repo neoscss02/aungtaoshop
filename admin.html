@@ -2905,16 +2905,38 @@
     }
     const okMsg = res && (res.message === 'Success' || res.code === '0' || res.code === 0);
 
+    // แปลงเป็นรายการอ่านง่าย (สินค้า/ออเดอร์)
+    let listHtml = '';
+    const stBadge = (s) => {
+      const active = /ACTIVATE|LIVE|ACTIVE/i.test(s || '');
+      return `<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${active ? '#dcfce7' : '#fef3c7'};color:${active ? '#166534' : '#92400e'}">${active ? '🟢 พร้อมขาย' : mpEsc(s || '-')}</span>`;
+    };
+    if (okMsg && kind === 'products' && res.data && Array.isArray(res.data.products)) {
+      listHtml = res.data.products.map(p => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border,#eee)">
+          <span style="width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:#ea580c15;display:flex;align-items:center;justify-content:center">📦</span>
+          <div style="font-weight:600;font-size:14px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mpEsc(p.title || p.name || '-')}</div>
+          ${stBadge(p.status)}
+        </div>`).join('');
+    } else if (okMsg && kind === 'orders' && res.data && Array.isArray(res.data.orders)) {
+      listHtml = res.data.orders.map(o => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border,#eee)">
+          <span>🛍️</span><div style="font-weight:600;font-size:13px;flex:1">${mpEsc(o.id || o.order_id || '-')}</div>
+          ${stBadge(o.status || o.order_status)}
+        </div>`).join('');
+    }
+
     dataEl.innerHTML = `
       <div class="table-card" style="padding:20px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div class="table-title">${label} · ${pname}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <div class="table-title">${label} บน ${pname}</div>
           <div style="margin-left:auto">${okMsg
-            ? `<span style="color:#16a34a;font-weight:700">✅ ดึงสำเร็จ${count != null ? ` · ${count} รายการ` : ''}</span>`
+            ? `<span style="color:#16a34a;font-weight:700">✅ อยู่บน ${pname} จริง${count != null ? ` · ${count} รายการ` : ''}</span>`
             : `<span style="color:#dc2626;font-weight:700">❌ ${mpEsc(res._err || res.error || res.message || 'ดึงไม่สำเร็จ')}</span>`}</div>
         </div>
-        ${okMsg && count === 0 ? `<div style="color:var(--text-s);font-size:13px;margin:8px 0 14px">ยังไม่มีข้อมูล — ร้านทดสอบเพิ่งสร้าง (สร้างสินค้า/ออเดอร์ทดสอบในหน้า Partner Center ก่อนนะคะ)</div>` : ''}
-        <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--text-s);font-size:13px">ดูข้อมูลดิบ (raw)</summary>
+        ${okMsg && count === 0 ? `<div style="color:var(--text-s);font-size:13px;margin:8px 0 14px">ยังไม่มีข้อมูล — ยังไม่ได้ยิงสินค้าขึ้นร้านนี้</div>` : ''}
+        ${listHtml ? `<div style="margin-bottom:8px">${listHtml}</div>` : ''}
+        <details style="margin-top:6px"><summary style="cursor:pointer;color:var(--text-s);font-size:13px">ดูข้อมูลดิบ (raw)</summary>
           <pre style="background:var(--bg-2,#f6f6f6);padding:12px;border-radius:8px;overflow:auto;font-size:12px;max-height:340px;margin-top:8px">${mpEsc(JSON.stringify(raw, null, 2))}</pre>
         </details>
       </div>`;
