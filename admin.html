@@ -770,6 +770,13 @@
       </div>
 
       <div class="nav-group">
+        <button class="nav-group-head" onclick="toggleGroup(this)"><span class="ngh-ic">🛒</span><span class="ngh-tx">Marketplace</span><span class="ngh-arr">▾</span></button>
+        <div class="nav-group-items">
+          <button class="nav-tab" data-tab="marketplace" onclick="switchTab('marketplace', this)">🛒 ร้านที่เชื่อม</button>
+        </div>
+      </div>
+
+      <div class="nav-group">
         <button class="nav-group-head" onclick="toggleGroup(this)"><span class="ngh-ic">⚙️</span><span class="ngh-tx">ตั้งค่า</span><span class="ngh-arr">▾</span></button>
         <div class="nav-group-items">
           <button class="nav-tab" data-tab="power" onclick="switchTab('power', this)">🔋 พลัง AI</button>
@@ -789,6 +796,20 @@
       <button class="nav-logout" onclick="doLogout()">ออกจากระบบ</button>
     </div>
   </nav>
+
+  <!-- ======= PAGE: MARKETPLACE (ร้านที่เชื่อม) ======= -->
+  <div class="page" id="page-marketplace">
+    <div style="max-width:1100px;margin:0 auto;padding:28px 32px">
+      <div class="page-title">🛒 Marketplace · ร้านที่เชื่อม</div>
+      <div class="page-sub">เชื่อมร้าน TikTok / Lazada เข้าระบบ — ดึงออเดอร์ สินค้า สต็อก มาที่เดียว</div>
+
+      <div id="mp-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:22px">
+        <div class="empty-state"><div class="icon">⏳</div>กำลังโหลดสถานะ...</div>
+      </div>
+
+      <div id="mp-data" style="margin-top:26px"></div>
+    </div>
+  </div>
 
   <!-- ======= PAGE: FINANCE (AI การเงิน) ======= -->
   <div class="page" id="page-finance">
@@ -2766,6 +2787,99 @@
     const { data: { session } } = await sb.auth.getSession();
     return session ? session.access_token : null;
   }
+
+  // ===== Marketplace (TikTok / Lazada) =====
+  async function mpFetch(path) {
+    const r = await fetch(WORKER_URL + path, { headers: { 'Authorization': 'Bearer ' + (await adminToken()) } });
+    return r.json();
+  }
+  function mpEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  async function loadMarketplace() {
+    const cards = document.getElementById('mp-cards');
+    const dataEl = document.getElementById('mp-data');
+    dataEl.innerHTML = '';
+    cards.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>กำลังโหลดสถานะ...</div>';
+
+    // ---- TikTok ----
+    let tt = {};
+    try { tt = await mpFetch('/tiktok/status'); } catch (e) { tt = { _err: String(e) }; }
+    // ---- Lazada ----
+    let lz = {};
+    try { lz = await mpFetch('/lazada/status'); } catch (e) { lz = { _err: String(e) }; }
+
+    const badge = (ok, txt) => `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${ok ? '#dcfce7' : '#fee2e2'};color:${ok ? '#166534' : '#991b1b'}">${txt}</span>`;
+
+    const ttCard = `
+      <div class="table-card" style="padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:26px">⚫</span>
+          <div><div style="font-weight:800;font-size:16px">TikTok Shop</div>
+          <div style="font-size:12px;color:var(--text-s)">${tt.connected ? mpEsc(tt.shop_name) : 'ยังไม่เชื่อมร้าน'}</div></div>
+          <div style="margin-left:auto">${badge(tt.connected, tt.connected ? 'เชื่อมแล้ว' : 'ยังไม่เชื่อม')}</div>
+        </div>
+        ${tt.connected ? `
+          <div style="font-size:13px;color:var(--text-s);margin-bottom:12px">token เหลืออายุ ${tt.days_left} วัน · แชท: ${mpEsc(tt.chat || '-')}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="save-status-btn" onclick="mpShowList('tiktok','products')" style="padding:8px 16px">📦 ดูสินค้า</button>
+            <button class="save-status-btn" onclick="mpShowList('tiktok','orders')" style="padding:8px 16px">🛍️ ดูออเดอร์</button>
+          </div>` : `
+          <a href="${WORKER_URL}/tiktok/auth" target="_blank" class="save-status-btn" style="display:inline-block;padding:8px 16px;text-decoration:none">🔗 เชื่อมร้าน TikTok</a>`}
+      </div>`;
+
+    const lzCard = `
+      <div class="table-card" style="padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:26px">🔵</span>
+          <div><div style="font-weight:800;font-size:16px">Lazada</div>
+          <div style="font-size:12px;color:var(--text-s)">${lz.connected ? mpEsc(lz.account || lz.country) : (lz.configured ? 'ยังไม่เชื่อมร้าน' : 'ยังไม่ได้ตั้งค่า App Key')}</div></div>
+          <div style="margin-left:auto">${badge(lz.connected, lz.connected ? 'เชื่อมแล้ว' : (lz.configured ? 'ยังไม่เชื่อม' : 'รอ App Key'))}</div>
+        </div>
+        ${lz.connected ? `
+          <div style="font-size:13px;color:var(--text-s);margin-bottom:12px">token เหลืออายุ ${lz.days_left} วัน · ✅ แชท AI ตอบลูกค้าได้</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="save-status-btn" onclick="mpShowList('lazada','orders')" style="padding:8px 16px">🛍️ ดูออเดอร์</button>
+            <button class="save-status-btn" onclick="mpShowList('lazada','sessions')" style="padding:8px 16px">💬 แชทลูกค้า</button>
+          </div>` : (lz.configured ? `
+          <a href="${WORKER_URL}/lazada/auth" target="_blank" class="save-status-btn" style="display:inline-block;padding:8px 16px;text-decoration:none">🔗 เชื่อมร้าน Lazada</a>` : `
+          <div style="font-size:12px;color:var(--text-s)">รออนุมัติ ERP qualification + ใส่ App Key ก่อนค่ะ</div>`)}
+      </div>`;
+
+    cards.innerHTML = ttCard + lzCard;
+  }
+
+  async function mpShowList(platform, kind) {
+    const dataEl = document.getElementById('mp-data');
+    const label = { products: '📦 สินค้า', orders: '🛍️ ออเดอร์', sessions: '💬 แชทลูกค้า' }[kind] || kind;
+    const pname = platform === 'tiktok' ? 'TikTok' : 'Lazada';
+    dataEl.innerHTML = `<div class="empty-state"><div class="icon">⏳</div>กำลังดึง ${label} จาก ${pname}...</div>`;
+    let res = {};
+    try { res = await mpFetch('/' + platform + '/' + kind); } catch (e) { res = { _err: String(e) }; }
+
+    // นับจำนวน (โครง response ต่างกันแต่ละเจ้า)
+    let count = null, raw = res;
+    if (res && res.data) {
+      count = res.data.total_count != null ? res.data.total_count
+            : (Array.isArray(res.data.orders) ? res.data.orders.length
+            : (Array.isArray(res.data.products) ? res.data.products.length
+            : (Array.isArray(res.data.sessions) ? res.data.sessions.length : null)));
+    }
+    const okMsg = res && (res.message === 'Success' || res.code === '0' || res.code === 0);
+
+    dataEl.innerHTML = `
+      <div class="table-card" style="padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div class="table-title">${label} · ${pname}</div>
+          <div style="margin-left:auto">${okMsg
+            ? `<span style="color:#16a34a;font-weight:700">✅ ดึงสำเร็จ${count != null ? ` · ${count} รายการ` : ''}</span>`
+            : `<span style="color:#dc2626;font-weight:700">❌ ${mpEsc(res._err || res.error || res.message || 'ดึงไม่สำเร็จ')}</span>`}</div>
+        </div>
+        ${okMsg && count === 0 ? `<div style="color:var(--text-s);font-size:13px;margin:8px 0 14px">ยังไม่มีข้อมูล — ร้านทดสอบเพิ่งสร้าง (สร้างสินค้า/ออเดอร์ทดสอบในหน้า Partner Center ก่อนนะคะ)</div>` : ''}
+        <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--text-s);font-size:13px">ดูข้อมูลดิบ (raw)</summary>
+          <pre style="background:var(--bg-2,#f6f6f6);padding:12px;border-radius:8px;overflow:auto;font-size:12px;max-height:340px;margin-top:8px">${mpEsc(JSON.stringify(raw, null, 2))}</pre>
+        </details>
+      </div>`;
+  }
   // ===== Online presence + last login (ดูตัวอย่างจาก Signmaster) =====
   async function touchOnline() {
     try { await fetch(WORKER_URL + '/admin/touch', { method: 'POST', headers: { 'Authorization': 'Bearer ' + (await adminToken()) } }); } catch (e) {}
@@ -2963,6 +3077,7 @@
     if (tab === 'loyalty') loadLoyalty();
     if (tab === 'members') loadMembers();
     if (tab === 'kb') kbLoad();
+    if (tab === 'marketplace') loadMarketplace();
     syncNavGroups();
     if (window.innerWidth <= 860) closeMobileNav();
   }
