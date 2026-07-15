@@ -2851,40 +2851,74 @@
     loadMyProductsForSync();
   }
 
+  let _mpProducts = [];
   async function loadMyProductsForSync() {
     const dataEl = document.getElementById('mp-data');
     dataEl.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>กำลังโหลดสินค้าในร้าน...</div>';
-    let rows = [];
+    let rows = [], synced = {};
     try {
       const { data } = await sb.from('products')
         .select('product_id,name,price,original_price,stock,category,image_url,active')
         .eq('active', true).order('created_at', { ascending: false });
       rows = data || [];
     } catch (e) { dataEl.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div>' + mpEsc(String(e)) + '</div>'; return; }
+    try { const s = await mpFetch('/tiktok/synced'); synced = s.synced || {}; } catch {}
+    _mpProducts = rows;
 
-    const baht = n => '฿' + Number(n || 0).toLocaleString();
-    const cardHtml = rows.map(p => `
-      <div style="background:var(--card,#fff);border:1px solid var(--border,#eee);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
-        <div style="aspect-ratio:1;background:#f4f4f5 center/cover no-repeat;${p.image_url ? `background-image:url('${mpEsc(p.image_url)}')` : ''};position:relative">
-          ${p.stock <= 0 ? '<span style="position:absolute;top:8px;left:8px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">หมด</span>' : ''}
-        </div>
-        <div style="padding:12px;display:flex;flex-direction:column;gap:4px;flex:1">
-          <div style="font-weight:700;font-size:13px;line-height:1.35;color:var(--text)">${mpEsc(p.name)}</div>
-          <div style="margin-top:auto;display:flex;align-items:baseline;gap:6px">
-            <span style="font-weight:800;color:#ea580c;font-size:15px">${baht(p.price)}</span>
-            ${p.original_price && p.original_price > p.price ? `<span style="font-size:12px;color:#9ca3af;text-decoration:line-through">${baht(p.original_price)}</span>` : ''}
-          </div>
-          <div style="font-size:11px;color:var(--text-s)">คงเหลือ ${p.stock} ชิ้น${p.category ? ' · ' + mpEsc(p.category) : ''}</div>
-        </div>
-      </div>`).join('');
-
+    const doneCount = rows.filter(p => synced[p.product_id]).length;
     dataEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
-        <div class="table-title">🐾 สินค้าในร้านเรา · พร้อมซิงก์ขึ้น marketplace</div>
+        <div class="table-title">🐾 สินค้าในร้านเรา · จัดการที่เดียว ยิงขึ้นทุกร้าน</div>
         <span style="background:#fef3c7;color:#92400e;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px">${rows.length} รายการ</span>
+        <span style="background:#dcfce7;color:#166534;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px">⚫ ขึ้น TikTok แล้ว ${doneCount}</span>
+        <button onclick="mpSyncAll()" id="mp-sync-all" style="margin-left:auto;padding:9px 18px;border:0;border-radius:9px;background:#111;color:#fff;font-weight:700;cursor:pointer">🚀 ซิงก์ที่เหลือขึ้น TikTok</button>
       </div>
-      <div style="font-size:13px;color:var(--text-s);margin-bottom:16px">สินค้าเหล่านี้พร้อมยิงขึ้น TikTok / Lazada — ระบบจะซิงก์ชื่อ ราคา สต็อก รูป ให้อัตโนมัติ (ปุ่มยิงขึ้นร้านจริงกำลังทำต่อค่ะ)</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">${cardHtml}</div>`;
+      <div style="font-size:13px;color:var(--text-s);margin-bottom:16px">เพิ่ม/แก้สินค้าในร้านเราที่เดียว แล้วกดปุ่ม → ขึ้น TikTok อัตโนมัติ (ชื่อ ราคา สต็อก รูป) ไม่ต้องเปิดแอป TikTok เลย</div>
+      <div id="mp-prod-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px"></div>`;
+    renderSyncGrid(synced);
+  }
+
+  function renderSyncGrid(synced) {
+    const baht = n => '฿' + Number(n || 0).toLocaleString();
+    const grid = document.getElementById('mp-prod-grid');
+    grid.innerHTML = _mpProducts.map(p => {
+      const done = !!synced[p.product_id];
+      return `
+      <div id="mpcard-${mpEsc(p.product_id)}" style="background:var(--card,#fff);border:1px solid var(--border,#eee);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="aspect-ratio:1;background:#f4f4f5 center/cover no-repeat;${p.image_url ? `background-image:url('${mpEsc(p.image_url)}')` : ''}"></div>
+        <div style="padding:11px;display:flex;flex-direction:column;gap:5px;flex:1">
+          <div style="font-weight:700;font-size:13px;line-height:1.35;color:var(--text)">${mpEsc(p.name)}</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-weight:800;color:#ea580c;font-size:15px">${baht(p.price)}</span>
+            ${p.original_price && p.original_price > p.price ? `<span style="font-size:12px;color:#9ca3af;text-decoration:line-through">${baht(p.original_price)}</span>` : ''}</div>
+          <div style="font-size:11px;color:var(--text-s)">คงเหลือ ${p.stock} ชิ้น</div>
+          <div class="mp-sync-slot" style="margin-top:6px">${done
+            ? '<div style="text-align:center;font-size:12px;font-weight:700;color:#166534;background:#dcfce7;border-radius:8px;padding:7px">✅ อยู่บน TikTok แล้ว</div>'
+            : `<button onclick="mpSyncOne('${mpEsc(p.product_id)}')" style="width:100%;padding:7px;border:1px solid #111;border-radius:8px;background:#fff;color:#111;font-weight:700;font-size:12px;cursor:pointer">🚀 ขึ้น TikTok</button>`}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function mpSyncOne(pid) {
+    const slot = document.querySelector(`#mpcard-${CSS.escape(pid)} .mp-sync-slot`);
+    if (slot) slot.innerHTML = '<div style="text-align:center;font-size:12px;color:#888;padding:7px">⏳ กำลังยิงขึ้น TikTok...</div>';
+    try {
+      const r = await fetch(WORKER_URL + '/tiktok/seed-one?pid=' + encodeURIComponent(pid), { method: 'POST', headers: { 'Authorization': 'Bearer ' + (await adminToken()) } }).then(r => r.json());
+      const ok = (r.created && r.created.length) || (r.skipped && r.skipped.length);
+      if (ok) { if (slot) slot.innerHTML = '<div style="text-align:center;font-size:12px;font-weight:700;color:#166534;background:#dcfce7;border-radius:8px;padding:7px">✅ อยู่บน TikTok แล้ว</div>'; showToast('✅ ขึ้น TikTok แล้ว'); }
+      else { const err = (r.failed && r.failed[0] && r.failed[0].error) || r.error || 'ไม่สำเร็จ'; if (slot) slot.innerHTML = `<button onclick="mpSyncOne('${mpEsc(pid)}')" style="width:100%;padding:7px;border:1px solid #dc2626;border-radius:8px;background:#fff;color:#dc2626;font-weight:700;font-size:12px;cursor:pointer">❌ ลองใหม่</button>`; showToast('❌ ' + err); }
+    } catch (e) { if (slot) slot.innerHTML = `<button onclick="mpSyncOne('${mpEsc(pid)}')" style="width:100%;padding:7px;border:1px solid #dc2626;border-radius:8px;background:#fff;color:#dc2626;font-weight:700;font-size:12px;cursor:pointer">❌ ลองใหม่</button>`; showToast('❌ ' + e.message); }
+  }
+
+  async function mpSyncAll() {
+    const btn = document.getElementById('mp-sync-all');
+    const pending = _mpProducts.filter(p => document.querySelector(`#mpcard-${CSS.escape(p.product_id)} .mp-sync-slot button`));
+    if (!pending.length) { showToast('ทุกตัวขึ้น TikTok แล้วค่ะ 🎉'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = `⏳ กำลังยิง ${pending.length} ตัว...`; }
+    let ok = 0;
+    for (const p of pending) { await mpSyncOne(p.product_id); ok++; if (btn) btn.textContent = `⏳ ${ok}/${pending.length}...`; }
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 ซิงก์ที่เหลือขึ้น TikTok'; }
+    loadMarketplace();
   }
 
   async function mpShowList(platform, kind) {
