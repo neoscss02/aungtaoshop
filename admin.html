@@ -722,6 +722,7 @@
         <button class="nav-group-head" onclick="toggleGroup(this)"><span class="ngh-ic">🧠</span><span class="ngh-tx">ผู้จัดการ</span><span class="ngh-arr">▾</span></button>
         <div class="nav-group-items">
           <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard', this)">ภาพรวมธุรกิจ</button>
+          <button class="nav-tab" data-tab="manager" onclick="switchTab('manager', this)">🧠 ที่ปรึกษาผู้จัดการ</button>
           <button class="nav-tab" data-tab="kb" onclick="switchTab('kb', this)">🧠 คลังความรู้</button>
           <button class="nav-tab editor-only" data-tab="linereport" onclick="switchTab('linereport', this)">📊 รายงาน LINE</button>
         </div>
@@ -1457,6 +1458,38 @@
   </div>
 
   <!-- ======= PAGE: KNOWLEDGE BASE (RAG) ======= -->
+  <!-- ======= PAGE: MANAGER CONSULT CHAT (โกลด์ · deep/orchestration) ======= -->
+  <div class="page" id="page-manager">
+    <div style="max-width:920px;margin:0 auto;padding:28px 32px">
+      <div class="page-title">🧠 ที่ปรึกษาผู้จัดการ (โกลด์)</div>
+      <div class="page-sub">ปรึกษาเชิงลึก/วางแผนกลยุทธ์กับโกลด์ได้เต็มที่ — บนเว็บไม่มีการตัดเวลาแบบ LINE โกลด์จึงระดมทีมผู้เชี่ยวชาญ (สต็อก · การเงิน · การตลาด · ขนส่ง) มาช่วยคิดได้ · แชตนี้เน้น "ปรึกษา/วางแผน" (คำสั่งเปลี่ยนข้อมูลจริง จัดโปร/บรอดแคสต์ ทำผ่าน LINE เพื่อมีขั้นยืนยัน)</div>
+      <div class="agent-banner">
+        <div class="ab-icon">🧠</div>
+        <div>
+          <div class="ab-name">โกลด์ · ผู้จัดการ AI</div>
+          <div class="ab-role">วิเคราะห์ธุรกิจ + วางแผนกลยุทธ์เชิงลึก · ระดมทีมผู้เชี่ยวชาญ 4 ฝ่าย</div>
+        </div>
+        <div class="ab-status ready">พร้อมปรึกษา 🟢</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--gold-l);border-radius:14px;margin-top:18px;overflow:hidden">
+        <div id="mgr-thread" style="min-height:280px;max-height:54vh;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div class="mgr-hello" style="color:var(--text-s);font-size:14px;text-align:center;padding:34px 12px;line-height:1.9">
+            สวัสดีค่ะคุณนัท 👋 ถามโกลด์ได้เลยค่ะ เช่น<br>
+            <span style="color:var(--gold-dk)">"เดือนนี้ยอดตก ช่วยวางแผนเพิ่มยอดที"</span> · <span style="color:var(--gold-dk)">"ระบายของค้างยังไงดี"</span> · <span style="color:var(--gold-dk)">"สรุปภาพรวมธุรกิจ"</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--gold-l);padding:14px 16px;background:var(--cream)">
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <textarea id="mgr-q" class="form-input" rows="2" placeholder="พิมพ์คำถาม/โจทย์ให้โกลด์… (Enter ส่ง · Shift+Enter ขึ้นบรรทัด)" style="flex:1;resize:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askManager();}"></textarea>
+            <button class="content-gen-btn" id="mgr-send" onclick="askManager()" style="width:auto;padding:12px 22px;white-space:nowrap">ถามโกลด์ ➤</button>
+          </div>
+          <div style="font-size:12px;color:var(--text-s);margin-top:8px">💡 คำถามลึก/ระดมทีมอาจใช้เวลา ~10–30 วิ · ต้นทุน AI ต่อครั้งจะแสดงใต้คำตอบ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="page" id="page-kb">
     <div style="max-width:1100px;margin:0 auto;padding:28px 32px">
       <div class="page-title">🧠 คลังความรู้ AI (RAG)</div>
@@ -3119,6 +3152,50 @@
   // ===== 🧠 คลังความรู้ (RAG · อุ๋งอิ๋ง + โกลด์) =====
   const KB_TMAP = { product:'สินค้า', faq:'แบรนด์/FAQ', skincare:'ของใช้สัตว์เลี้ยง', ingredient:'ส่วนผสม', competitor:'คู่แข่ง', news:'ข่าว/เทรนด์', sales:'การขาย', pricing:'ราคา', service:'บริการ', marketing:'การตลาด' };
   let kbGroupsCache = [];
+  // ===== 🧠 ที่ปรึกษาผู้จัดการ (โกลด์ · deep/orchestration ผ่าน /manager/ask) =====
+  const _mgrHist = [];
+  function _mgrBubble(role, text) {
+    const th = document.getElementById('mgr-thread');
+    const hello = th.querySelector('.mgr-hello'); if (hello) hello.remove();
+    const isUser = role === 'user';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;max-width:88%;' + (isUser ? 'align-self:flex-end;align-items:flex-end' : 'align-self:flex-start;align-items:flex-start');
+    const bub = document.createElement('div');
+    bub.style.cssText = 'padding:11px 15px;border-radius:14px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;' + (isUser ? 'background:var(--gold);color:#fff;border-bottom-right-radius:4px' : 'background:var(--cream);border:1px solid var(--gold-l);color:var(--text);border-bottom-left-radius:4px');
+    bub.innerHTML = escHtml(text);
+    wrap.appendChild(bub);
+    th.appendChild(wrap); th.scrollTop = th.scrollHeight;
+    return bub;
+  }
+  async function askManager() {
+    const qEl = document.getElementById('mgr-q'), btn = document.getElementById('mgr-send');
+    const q = (qEl.value || '').trim(); if (!q) return;
+    qEl.value = ''; btn.disabled = true; btn.textContent = 'กำลังคิด…';
+    _mgrBubble('user', q);
+    const bub = _mgrBubble('eva', '🧠 โกลด์กำลังวิเคราะห์…');
+    try {
+      const r = await fetch(WORKER_URL.replace(/\/$/, '') + '/manager/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await adminToken()) },
+        body: JSON.stringify({ q, history: _mgrHist.slice(-6) }),
+      });
+      const j = await r.json();
+      if (r.ok && j.reply) {
+        bub.innerHTML = escHtml(j.reply);
+        if (j.cost != null) {
+          const m = document.createElement('div');
+          m.style.cssText = 'font-size:11px;color:var(--text-s);margin-top:4px';
+          m.textContent = 'ต้นทุน AI ครั้งนี้ ฿' + Number(j.cost).toFixed(3) + (j.tool ? ' · โกลด์เสนอใช้เครื่องมือ: ' + j.tool : '');
+          bub.parentElement.appendChild(m);
+        }
+        _mgrHist.push({ user: q, bot: j.reply });
+      } else {
+        bub.innerHTML = '❌ ' + escHtml(j.error || 'โกลด์ตอบไม่ได้ค่ะ ลองใหม่อีกครั้งนะคะ');
+      }
+    } catch (e) { bub.innerHTML = '❌ ' + escHtml(e.message || String(e)); }
+    finally { btn.disabled = false; btn.textContent = 'ถามโกลด์ ➤'; const th = document.getElementById('mgr-thread'); th.scrollTop = th.scrollHeight; }
+  }
+
   async function kbApi(path, body){ try{ const r=await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(await adminToken())}, body:JSON.stringify(body||{}) }); return await r.json().catch(()=>({})); }catch(e){ return {error:String(e)}; } }
   function kbMsg(m){ const e=document.getElementById('kbMsg'); if(e) e.textContent=m||''; }
   function kbDate(s){ try{ return s?new Date(s).toLocaleDateString('th-TH'):''; }catch(e){ return ''; } }
